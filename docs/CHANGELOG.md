@@ -114,3 +114,55 @@
 - **Package restructuring**: `src/adaptive_route_optimization/` layout for editable install
 
 - **Phase 3 Gate**: All baseline tests pass; costs independently verified; exact-vs-heuristic comparison works on small instances
+
+## [Phase 4 Complete] - 2026-10-10
+### Local Search and Repair Algorithms
+- **src/algorithms/local_search/two_opt.py**: 2-opt local search (first-improvement)
+  - `two_opt(instance, route, max_passes, max_evaluations)` returns `TwoOptResult`
+  - First-improvement strategy: applies first improving move, restarts scan
+  - Deterministic tie-breaking: earliest (i, j) in lexicographic order
+  - Numerical stability: EPS = 1e-9 threshold (delta < -EPS required)
+  - Candidate evaluations: one per pair examined (not per improving move)
+  - Budget controls: max_passes and max_evaluations limits
+  - Time: O(m²) per pass, Space: O(1) extra
+
+- **src/algorithms/repair/insertion.py**: Greedy Insertion Repair (Strategy A)
+  - `cheapest_insertion(instance, route, new_vertices)` returns `InsertionResult`
+  - For each new vertex, evaluates all m insertion positions
+  - Cost delta = c(u, v) + c(v, w) - c(u, w)
+  - Deterministic tie-breaking: lowest position index wins
+  - Candidate evaluations: m per new vertex
+  - `greedy_insertion_repair`: Strategy A wrapper, processes vertices in sorted order
+
+- **src/algorithms/repair/insertion_two_opt.py**: Insertion + 2-opt Repair (Strategy B)
+  - `insertion_then_two_opt(instance, route, new_vertices, ...)` returns `InsertionTwoOptResult`
+  - Phase 1: Apply greedy insertion for all new vertices
+  - Phase 2: Run 2-opt to local optimum (or budget limit)
+  - Combined candidate evaluations: insertion + 2-opt
+  - Budget controls: max_passes and max_evaluations (shared budget)
+  - `strategy_b_repair`: Strategy B with defaults (run to local optimum)
+
+- **tests/test_local_search.py**: 13 unit tests covering
+  - No-improvement case, crossed route improvement, first-improvement strategy
+  - Determinism, tie-breaking, max_passes/max_evaluations budget limits
+  - Edge cases: empty route, 1/2/3 customers, numerical stability (EPS)
+  - Hand-worked example verification: 9 evaluations, 0 moves on Phase 2 example
+
+- **tests/test_repair.py**: 19 unit tests covering
+  - Strategy A: single/batch vertex insertion, deterministic tie-breaking, empty route
+  - Strategy B: insertion+2-opt, hand-worked example verification (9 evals, 0 moves)
+  - Strategy A vs B on same event: both feasible, Strategy B cost ≤ Strategy A cost
+  - Budget limits: max_evaluations (shared), max_passes
+  - Reproducibility: same seed → same results, same instance+event → same results
+  - Computational effort verification: insertion evals = 4+5, 2-opt evals ≥ 9
+  - Edge cases: duplicate vertices, depot insertion, result structure validation
+
+- **Algorithm-level instrumentation**:
+  - Every algorithm tracks candidate_evaluations, accepted_moves, passes
+  - 2-opt evaluates m(m-3)/2 pairs per pass (skips depot-depot)
+  - Insertion evaluates m positions per new vertex
+
+- **Phase 4 Gate**: For the same dynamic event both repair methods yield valid routes and reproducible cost/time measurements
+  - Verified by `test_strategy_a_vs_b_same_event` (20 random seeds)
+  - Verified by `test_repair_same_instance_event_sequence`
+  - Hand-worked example reproduced exactly in `test_insertion_two_opt_hand_worked_example`
