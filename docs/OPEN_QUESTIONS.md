@@ -1,24 +1,61 @@
 # Open Questions
 
-## Phase 2: Algorithmic Specification
-- [ ] Single-route dynamic TSP vs multi-route VRP? (Default: single-route TSP first)
-- [ ] Precise definition of route disruption metric
-- [ ] Exact event model: single vertex at a time, or batches?
-- [ ] Are there time windows or other constraints on vertices?
-- [ ] Is the graph fully connected Euclidean, or general weighted graph?
+## Phase 2: Algorithmic Specification — RESOLVED with Recommendations
 
-## Phase 6: Experimental Framework
-- [ ] Primary computational budget: wall-clock time vs evaluation count?
-- [ ] Number of seeds per condition (start with 10, adjust after pilot)
-- [ ] Exact instance sizes for pilot vs full campaign
-- [ ] Random instance distribution (uniform, clustered, mixed)
+| # | Question | Recommendation (Default) | Status |
+|---|----------|--------------------------|--------|
+| 1 | Single-route dynamic TSP vs multi-route VRP? | **Single-route dynamic TSP** as core. Multi-route VRP documented as optional extension for Phase 4+. | ✅ Resolved in RESEARCH_SPEC.md |
+| 2 | Precise definition of route disruption metric | **Edge-based normalized disruption**: δ = 1 - \|E_t ∩ E_{t+1}\| / max(\|E_t\|, \|E_{t+1}\|) ∈ [0,1]. Captures structural change, invariant to vertex renumbering. | ✅ Resolved in RESEARCH_SPEC.md |
+| 3 | Exact event model: single vertex or batches? | **Single vertex per event** (base model). Batch events (|Δ_t| > 1) supported as extension: process sequentially in vertex-index order. | ✅ Resolved in RESEARCH_SPEC.md |
+| 4 | Time windows or other constraints on vertices? | **None in core model**. Only constraint: valid tour visiting each revealed vertex exactly once. Time windows/capacity noted as future VRP extensions. | ✅ Resolved in RESEARCH_SPEC.md |
+| 5 | Fully connected Euclidean vs general weighted graph? | **Fully connected Euclidean on 2D points** (symmetric, triangle inequality). General weighted graphs noted as future extension. | ✅ Resolved in RESEARCH_SPEC.md |
 
-## Phase 7: Analysis
-- [ ] Statistical tests to use (paired t-test, Wilcoxon, bootstrap CI?)
-- [ ] Effect size measures to report
-- [ ] Held-out validation protocol for adaptive selector
+## Phase 6: Experimental Framework — PENDING (Decide in Pilots)
 
-## Phase 8: Adaptive Selection (Conditional)
-- [ ] What state features are available at decision time?
-- [ ] Selection overhead budget
-- [ ] Oracle definition for regret calculation
+| # | Question | Recommendation | Status |
+|---|----------|----------------|--------|
+| 6 | Primary computational budget: wall-clock vs evaluation count? | **Lean toward fixed evaluation count** for reproducibility; wall-clock as secondary reporting. Run pilots under both and choose based on cleaner strategy differentiation. | ⏳ Deferred to Phase 6 |
+| 7 | Number of seeds per condition | Start with **10 seeds**; increase if variance high and runtime permits. | ⏳ Deferred to Phase 6 |
+| 8 | Exact instance sizes for pilot vs full campaign | Pilot: **50, 100, 200**. Expand only if runtime permits. | ⏳ Deferred to Phase 6 |
+| 9 | Random instance distribution | **Uniform in unit square** for pilots. Clustered/mixed as robustness checks later. | ⏳ Deferred to Phase 6 |
+
+## Phase 7: Analysis — PENDING
+
+| # | Question | Recommendation | Status |
+|---|----------|----------------|--------|
+| 10 | Statistical tests | **Paired tests** (same instance/events): Wilcoxon signed-rank (non-parametric) + paired t-test (if normal). Report 95% bootstrap CIs. | ⏳ Deferred to Phase 7 |
+| 11 | Effect size measures | **Cliff's delta** (non-parametric) + Cohen's d (parametric). Report both. | ⏳ Deferred to Phase 7 |
+| 12 | Held-out validation for adaptive selector | If Phase 8 proceeds: **70/30 split** on instance families (not just seeds). Features derived from development set only. | ⏳ Deferred to Phase 8 |
+
+## Phase 8: Adaptive Selection (Conditional) — PENDING
+
+| # | Question | Recommendation | Status |
+|---|----------|----------------|--------|
+| 13 | State features at decision time | Cheap features: current route cost, |V_t|, |Δ_t|, disruption of last step, frozen prefix length, budget remaining. | ⏳ Deferred to Phase 8 |
+| 14 | Selection overhead budget | Count feature extraction + decision as **candidate evaluations**; include in budget. | ⏳ Deferred to Phase 8 |
+| 15 | Oracle definition for regret | **Per-instance per-event oracle**: best strategy cost in hindsight (from same experiment data). Regret = selected - oracle. | ⏳ Deferred to Phase 8 |
+
+## Additional Clarifications from Phase 2 Work
+
+| # | Question | Resolution |
+|---|----------|------------|
+| 16 | Frozen prefix: how many vertices advance per step? | **Default: 1 vertex per event step**. Configurable in simulator; documented in RESEARCH_SPEC.md. |
+| 17 | Zero-cost edges (coincident points)? | **Reject instance** or add ε=1e-9 jitter to coordinates. Generator spec handles this. |
+| 18 | Duplicate vertex in event Δ_t? | **Ignore silently**; generator guarantees no duplicates. |
+| 19 | Event at depot (v=0)? | **Impossible by construction**; V \ {0} only. |
+| 20 | Empty initial route (V₀={0})? | **Supported**: insertion creates (0, v, 0). Cost = 2·c(0,v). |
+| 21 | 2-opt variant: first-improvement vs best-improvement? | **First-improvement** (apply first improving move, restart scan). Documented in PSEUDOCODE.md. |
+| 22 | 2-opt tie-breaking on equal delta? | **Earliest (i,j) in lexicographic order**. |
+| 23 | 2-opt numerical stability threshold? | **ε = 1e-9**: only apply if delta < -ε. Prevents cycling on flat landscapes. |
+| 24 | Computational budget for 2-opt in Strategy B? | **Run to local optimum** (no budget limit in spec). Budget limits applied in Phase 6 experiments. |
+
+## Summary of Decisions Made in Phase 2
+
+All Phase 2 questions are **resolved** with explicit definitions in:
+- `docs/RESEARCH_SPEC.md` — formal problem specification
+- `docs/NOTATION.md` — symbol table
+- `docs/PSEUDOCODE.md` — algorithm pseudocode with complexity
+- `docs/HAND_WORKED_EXAMPLE.md` — traceable 10-node example
+- `tests/test_spec_examples.py` — executable verification
+
+**No silent assumptions remain for Phase 2**. Remaining open questions are explicitly deferred to later phases with recommended defaults.
