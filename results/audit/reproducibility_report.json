@@ -1,0 +1,35 @@
+{
+  "all_passed": true,
+  "checks": [
+    {
+      "check_name": "Manifest Check (pilot_matrix)",
+      "passed": true,
+      "details": "Valid manifest with git commit ed28ef4, completed=60, failed=0."
+    },
+    {
+      "check_name": "Manifest Check (budgeted_pilot)",
+      "passed": true,
+      "details": "Valid manifest with git commit ed28ef4, completed=12, failed=0."
+    },
+    {
+      "check_name": "Manifest Check (held_out_matrix)",
+      "passed": true,
+      "details": "Valid manifest with git commit 1a991a1, completed=90, failed=0."
+    },
+    {
+      "check_name": "Pilot Reproduction Agreement",
+      "passed": true,
+      "details": "Exact numerical match across all 60 runs (max cost diff=0.00e+00, effort diff=0)."
+    },
+    {
+      "check_name": "Figure Artifact Traceability",
+      "passed": true,
+      "details": "All 12 publication figures verified on disk with valid file sizes (>40 KB)."
+    },
+    {
+      "check_name": "Table Artifact Traceability",
+      "passed": true,
+      "details": "All 14 analysis tables verified on disk with valid non-zero content."
+    }
+  ]
+}
