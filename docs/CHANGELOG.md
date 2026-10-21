@@ -380,4 +380,53 @@
   - High Dynamicity Savings: Slashes evaluations by **51.4%** at $\alpha \ge 0.6$ while achieving lower route cost than both baselines.
   - Step-level Switching Synergy: In **12 out of 30 held-out instances (40.0%)**, Adaptive beat **both** Always A and Always B on the exact same instance.
 
+## [Phase 9 Complete] - 2026-10-21
+### Research Demonstrator & Visualization Dashboard
+- **src/adaptive_route_optimization/ui/data_loader.py**: Data ingestion & validation
+  - Cached, safe data loader for `pilot_matrix`, `budgeted_pilot`, `held_out_matrix`, and `results/audit/`
+  - Validates required columns, types, and manifest provenance
+  - Multi-parameter filtering across problem sizes ($n$), dynamicities ($\alpha$), strategies, and seeds
+
+- **src/adaptive_route_optimization/ui/visualizer.py**: 2D spatial route visualizer
+  - `render_route_step_diagram()`: publication-quality 2D tour visualization
+  - Highlights Depot (red square), Immutable Frozen Prefix (thick green solid line), Uncommitted Suffix (blue dashed line), and Newly Revealed Arrivals ($\Delta_t$, orange star)
+  - Displays step cost deltas ($C_{t-1} \to C_t$), candidate evaluations, and strategy labels
+  - Headless Matplotlib execution (compatible with Agg backend and Streamlit)
+
+- **src/adaptive_route_optimization/ui/plots.py**: Interactive research plotting
+  - `plot_cost_by_dynamicity()`: route quality curves across strategies
+  - `plot_effort_by_dynamicity()`: log-scale computational effort scaling
+  - `plot_pareto_frontier()`: quality vs. computation empirical Pareto frontier
+  - `plot_disruption_comparison()`: normalized edge disruption bar comparison
+  - `plot_budget_ablation_chart()`: diminishing marginal returns under budget caps
+
+- **src/adaptive_route_optimization/ui/demonstrator.py**: Step-by-step interactive simulation
+  - `InteractiveDemonstrator`: controls dynamic arrivals, vehicle advances, and strategy updates
+  - Captures decision-time state features and explainable rule rationales for ADAPTIVE
+  - Strictly verifies frozen-prefix invariance at every single dynamic step
+
+- **src/adaptive_route_optimization/ui/app.py**: Streamlit application
+  - Academic-style multi-view dashboard:
+    1. Research Overview & Problem Formulation
+    2. Interactive Dynamic Route Demonstrator
+    3. Saved Experimental Results Explorer (with dynamic filters and metric cards)
+    4. Comparative Visualizations & Pareto Frontier
+    5. Research Findings & Methodological Limitations (including the myopic 2-opt trap)
+    6. Reproducibility & Pre-Phase 9 Audit Drawer (40/40 claims verified, manifests, test summary)
+  - Zero hard-coded numbers; reads all metrics from immutable saved result files
+
+- **scripts/run_dashboard.py**: Local launcher entry point
+  - Runs Streamlit dashboard with configurable port (`--port 8501`)
+
+- **tests/test_ui.py**: 14 comprehensive unit & integration tests
+  - Data loader loading, schema checks, filtering, and error handling
+  - Visualizer diagram generation without GUI display
+  - Interactive demonstrator simulation and frozen-prefix invariance verification across all steps
+  - Research plotting functions and empty DataFrame robustness
+
+- **Phase 9 Gate**: "a person who knows nothing about the project can understand the problem, see a dynamic event, see the route change, and understand the measured trade-off without reading code" — VERIFIED
+  - Interactive route demonstrator visualizes arrival events and frozen prefix in real time
+  - Non-technical overview and transparent metric comparisons clearly communicate trade-offs
+
+
 
