@@ -166,3 +166,63 @@
   - Verified by `test_strategy_a_vs_b_same_event` (20 random seeds)
   - Verified by `test_repair_same_instance_event_sequence`
   - Hand-worked example reproduced exactly in `test_insertion_two_opt_hand_worked_example`
+
+## [Phase 5 Complete] - 2026-10-11
+### Dynamic Simulation Engine
+- **src/simulation/state.py**: Dynamic state model with frozen-prefix support
+  - `DynamicState` dataclass tracking V_t, frozen_prefix_length, current_route, time_step
+  - `create_initial_state()` builds initial route via nearest-neighbor on V_0
+  - `get_uncommitted_suffix_vertices()` returns suffix for repair (respects frozen prefix)
+  - `advance_frozen_prefix(steps)` advances vehicle position along route
+  - `reconstruct_route_from_suffix()` combines frozen prefix + updated suffix
+  - Full validation of state consistency
+
+- **src/simulation/events.py**: Deterministic event generation
+  - `EventConfig` with total_vertices, initial_known_count/dynamicity, events_per_step, seed, vertex_order
+  - `EventGenerator` class for reproducible event sequences
+  - `generate_event_sequence()` convenience function
+  - Supports single-vertex and batch events, multiple revelation orders (random, index, distance)
+  - Deterministic: same seed → identical V_0 and Δ_t sequence
+
+- **src/simulation/simulator.py**: Event-driven simulator
+  - `Simulator` class runs complete dynamic routing experiments
+  - `Strategy.A` (greedy insertion) and `Strategy.B` (insertion + 2-opt)
+  - `run_both_strategies()` executes both on IDENTICAL instance and event sequence
+  - Frozen-prefix enforcement: only uncommitted suffix modified during repair
+  - Per-step metrics: route cost, disruption, computational effort, response time
+  - `SimulationResult` with full trajectory and aggregate statistics
+
+- **src/simulation/replay.py**: Exact reproduction system
+  - `ReplayConfig` captures all parameters for exact reproduction
+  - `replay_from_original()` re-runs with same instance + event sequence
+  - `verify_replay_exact()` confirms byte-for-byte identical results
+  - Phase 5 Gate satisfied: complete run replayable from seed/config
+
+- **src/simulation/logging.py**: Comprehensive event/route state logging
+  - `SimulationLogger` captures every step: event, routes, metrics, repair details
+  - `SimulationLog` with JSON serialization and CSV export
+  - Structured output for analysis pipeline
+
+- **src/simulation/animation.py**: Debugging visualization prototype
+  - `animate_route_state()` creates matplotlib animation of route evolution
+  - `plot_route_evolution()` static plot with cost/disruption curves
+  - Agg backend compatible for headless testing
+
+- **tests/test_simulation.py**: 42 comprehensive tests
+  - DynamicState: frozen prefix, suffix extraction, reconstruction, validation
+  - EventGenerator: determinism, dynamicity levels, batch events, vertex orders
+  - Simulator: both strategies, frozen-prefix enforcement, same instance/events
+  - Replay: exact match verification, step-by-step, both strategies
+  - Logging: captures all steps, JSON/CSV export
+  - Animation: frame creation smoke test
+  - Edge cases: empty route, 1 vertex, full freeze, batch events
+  - Adversarial: duplicate coords, zero-cost edges
+  - Hand-worked example reproduction (Phase 2 example)
+  - Deterministic full runs across multiple seeds
+
+- **Phase 5 Gate**: "a complete run can be replayed exactly with the same event sequence and results from the same seed" — VERIFIED
+  - `test_replay_exact_match`: replay matches original byte-for-byte
+  - `test_replay_step_by_step`: every intermediate state matches
+  - `test_replay_different_strategies`: both strategies replay exactly
+  - `test_deterministic_full_run`: 20 seeds produce identical results
+  - `test_hand_worked_example_reproduction`: Phase 2 example reproduced exactly
