@@ -272,3 +272,57 @@
 - **Phase 6 Gate**: "one command runs a full experiment matrix and produces raw results with no manual intervention" — VERIFIED
   - Executed 60-run pilot matrix in 141.13s with zero failures
   - Re-run from manifest confirmed byte-for-byte exact reproducibility with 0 discrepancies
+
+## [Phase 7 Complete] - 2026-10-21
+### Research Analysis & Ablation
+- **src/adaptive_route_optimization/analysis/validator.py**: Rigorous data validation
+  - Validates Non-Negotiable Rule 10 parity (identical initial cost and event count between strategies)
+  - Checks schema completeness, range boundaries (cost > 0, disruption in [0,1]), feasibility, null checks
+
+- **src/adaptive_route_optimization/analysis/metrics.py**: Metrics aggregation & paired matching
+  - `compute_relative_improvement`: standardized percentage improvement formula: $((A - B)/A) \times 100$
+  - `build_paired_dataset`: strictly matches Strategy A and B on identical (condition, seed)
+  - Aggregates by condition, problem size ($n \in \{50, 100, 200\}$), dynamicity ($\alpha \in \{0.1, 0.2, 0.4, 0.6, 0.8\}$), and per-event steps
+
+- **src/adaptive_route_optimization/analysis/statistical.py**: Hypothesis testing & effect sizes
+  - Normality checks via Shapiro-Wilk test
+  - Parametric paired t-test with Cohen's $d_z$ effect size
+  - Non-parametric Wilcoxon signed-rank test with matched-pairs rank-biserial correlation $r$
+  - Deterministic 95% bootstrap confidence intervals for mean difference ($10,000$ iterations)
+
+- **src/adaptive_route_optimization/analysis/ablation.py**: Component & budget ablation
+  - `analyze_component_ablation`: isolates the marginal cost and benefit of adding 2-opt to cheapest insertion
+  - `analyze_dynamicity_regime_ablation`: segments performance across Low ($\alpha \le 0.2$), Moderate ($\alpha = 0.4$), and High ($\alpha \ge 0.6$) regimes
+  - `analyze_budget_cap_ablation`: evaluates the trade-off of 200 vs 500 evals/update vs unbounded search
+
+- **src/adaptive_route_optimization/analysis/visualizer.py**: Publication figures (Agg backend)
+  - Generated all 9 publication figures saved to `results/figures/` (dpi=200):
+    1. `fig1_dynamicity_vs_cost.png`
+    2. `fig2_dynamicity_vs_response_time.png`
+    3. `fig3_size_vs_cost.png`
+    4. `fig4_size_vs_runtime.png`
+    5. `fig5_evals_vs_cost_improvement.png`
+    6. `fig6_paired_comparison.png`
+    7. `fig7_route_disruption.png`
+    8. `fig8_quality_vs_computation_tradeoff.png`
+    9. `fig9_budget_ablation.png`
+
+- **src/adaptive_route_optimization/analysis/pipeline.py** & **cli.py**: Automated analysis pipeline
+  - Full CLI and API tool generating summary tables in `results/tables/`:
+    `summary_by_condition.csv`, `paired_strategy_comparison.csv`, `statistical_battery.csv`, `scalability_by_size.csv`, `scalability_by_dynamicity.csv`, `ablation_by_condition.csv`, `ablation_by_regime.csv`, `step_level_statistics.csv`, `budget_ablation.csv`, `analysis_summary.json`
+
+- **docs/RESEARCH_FINDINGS.md**: Formal research report
+  - Comprehensive documentation of all comparative findings, limitations, and regime breakdowns
+
+- **tests/test_analysis.py**: 13 unit and integration tests
+  - Validator tests (clean data, Rule 10 parity violations, infeasibility, out-of-bound disruption)
+  - Metric calculations, paired construction, statistical battery, ablation summaries, plot generation, end-to-end pipeline
+
+- **Phase 7 Gate**: ">=3 evidence-backed findings AND >=1 limitation or non-significant result" — VERIFIED
+  - Finding 1: Decisive superiority of Strategy B at low dynamicity ($\alpha \le 0.2$: 100% win rate, +10.86% mean cost reduction)
+  - Finding 2: Exponential computational scaling of 2-opt ($49.1\times$ to $75.1\times$ more evals, $110.8\times$ slower response time; $p = 1.86 \times 10^{-9}$)
+  - Finding 3: Route disruption doubling under 2-opt ($\text{mean } \delta = 0.0794$ vs $0.0367$; $p = 1.86 \times 10^{-9}$)
+  - Finding 4: Budget cap Pareto efficiency (500 evals/update captures 96.3% of benefits while saving 32.3% of effort)
+  - Limitation/Non-significant result: Overall route cost difference across all dynamic conditions is NOT statistically significant ($p = 0.1975$, 95% CI $[-11.49, +59.15]$ spans 0)
+  - Limitation/Negative finding: Myopic local search trap at high dynamicity ($\alpha \ge 0.6$: Strategy B inferior in 66.7% of runs, -5.01% average cost penalty)
+

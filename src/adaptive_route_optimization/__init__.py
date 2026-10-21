@@ -57,6 +57,26 @@ from adaptive_route_optimization.experiments import (
     verify_reproducibility,
 )
 
+# Analysis (Phase 7)
+from adaptive_route_optimization.analysis import (
+    DataValidationReport,
+    validate_experiment_data,
+    compute_relative_improvement,
+    build_paired_dataset,
+    aggregate_by_condition,
+    aggregate_scalability,
+    compute_step_level_statistics,
+    PairedTestResult,
+    compute_bootstrap_ci,
+    run_paired_analysis,
+    run_full_statistical_battery,
+    analyze_component_ablation,
+    analyze_dynamicity_regime_ablation,
+    analyze_budget_cap_ablation,
+    AnalysisPipeline,
+    run_pipeline,
+)
+
 __version__ = "0.1.0"
 
 __all__ = [
@@ -101,4 +121,21 @@ __all__ = [
     "ExperimentRunner",
     "run_experiment",
     "verify_reproducibility",
+    # Analysis (Phase 7)
+    "DataValidationReport",
+    "validate_experiment_data",
+    "compute_relative_improvement",
+    "build_paired_dataset",
+    "aggregate_by_condition",
+    "aggregate_scalability",
+    "compute_step_level_statistics",
+    "PairedTestResult",
+    "compute_bootstrap_ci",
+    "run_paired_analysis",
+    "run_full_statistical_battery",
+    "analyze_component_ablation",
+    "analyze_dynamicity_regime_ablation",
+    "analyze_budget_cap_ablation",
+    "AnalysisPipeline",
+    "run_pipeline",
 ]
