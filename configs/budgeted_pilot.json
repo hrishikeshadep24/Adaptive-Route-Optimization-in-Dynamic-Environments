@@ -1,0 +1,51 @@
+{
+  "name": "budgeted_pilot",
+  "description": "Evaluation of Strategy B under controlled computational candidate evaluation budgets vs unbounded",
+  "seeds": [42, 101],
+  "strategies": ["A", "B"],
+  "output_dir": "results/budgeted_pilot",
+  "conditions": [
+    {
+      "condition_id": "n50_d0.4_unbounded",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Unbounded baseline"
+      }
+    },
+    {
+      "condition_id": "n50_d0.4_budget500",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 500,
+        "rationale": "Cap at 500 candidate evaluations per update"
+      }
+    },
+    {
+      "condition_id": "n50_d0.4_budget200",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 200,
+        "rationale": "Cap at 200 candidate evaluations per update"
+      }
+    }
+  ]
+}

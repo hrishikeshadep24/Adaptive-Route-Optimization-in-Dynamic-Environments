@@ -42,6 +42,7 @@ def two_opt(
     route: Route,
     max_passes: Optional[int] = None,
     max_evaluations: Optional[int] = None,
+    min_i: int = 0,
 ) -> TwoOptResult:
     """Run 2-opt local search to local optimum (first-improvement).
 
@@ -50,6 +51,9 @@ def two_opt(
         route: Initial route.
         max_passes: Optional limit on number of passes (for budget control).
         max_evaluations: Optional limit on candidate evaluations (for budget control).
+        min_i: Minimum starting index for edge pair scan (default 0).
+               When min_i > 0, edges before index min_i are preserved,
+               allowing suffix-only local search under the frozen-prefix rule.
 
     Returns:
         TwoOptResult with optimized route and statistics.
@@ -79,8 +83,8 @@ def two_opt(
         vertices = list(current_route.vertices)
 
         # Scan all non-adjacent edge pairs in lexicographic order (i, j)
-        # i from 0 to n-3, j from i+2 to n-1 (wrapping handled by depot)
-        for i in range(n_edges - 2):
+        # i from min_i to n-3, j from i+2 to n-1 (wrapping handled by depot)
+        for i in range(min_i, n_edges - 2):
             for j in range(i + 2, n_edges):
                 # Skip if this involves depot-depot (first and last edge both incident to depot)
                 if i == 0 and j == n_edges - 1:

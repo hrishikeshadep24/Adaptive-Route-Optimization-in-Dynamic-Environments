@@ -10,14 +10,14 @@
 | 4 | Time windows or other constraints on vertices? | **None in core model**. Only constraint: valid tour visiting each revealed vertex exactly once. Time windows/capacity noted as future VRP extensions. | ✅ Resolved in RESEARCH_SPEC.md |
 | 5 | Fully connected Euclidean vs general weighted graph? | **Fully connected Euclidean on 2D points** (symmetric, triangle inequality). General weighted graphs noted as future extension. | ✅ Resolved in RESEARCH_SPEC.md |
 
-## Phase 6: Experimental Framework — PENDING (Decide in Pilots)
+## Phase 6: Experimental Framework — RESOLVED in Pilots
 
-| # | Question | Recommendation | Status |
-|---|----------|----------------|--------|
-| 6 | Primary computational budget: wall-clock vs evaluation count? | **Lean toward fixed evaluation count** for reproducibility; wall-clock as secondary reporting. Run pilots under both and choose based on cleaner strategy differentiation. | ⏳ Deferred to Phase 6 |
-| 7 | Number of seeds per condition | Start with **10 seeds**; increase if variance high and runtime permits. | ⏳ Deferred to Phase 6 |
-| 8 | Exact instance sizes for pilot vs full campaign | Pilot: **50, 100, 200**. Expand only if runtime permits. | ⏳ Deferred to Phase 6 |
-| 9 | Random instance distribution | **Uniform in unit square** for pilots. Clustered/mixed as robustness checks later. | ⏳ Deferred to Phase 6 |
+| # | Question | Recommendation / Resolution | Status |
+|---|----------|-----------------------------|--------|
+| 6 | Primary computational budget: wall-clock vs evaluation count? | **Fixed Candidate Evaluation Count** selected as primary budget for deterministic, cross-platform reproducibility. Wall-clock time (ms) recorded as secondary metric. | ✅ Resolved in Phase 6 |
+| 7 | Number of seeds per condition | Initial pilot run on **3 seeds**; full campaign scaled to **10 seeds** per condition. | ✅ Resolved in Phase 6 |
+| 8 | Exact instance sizes for pilot vs full campaign | Pilot matrix uses **50, 100, 200** across dynamicity {0.1, 0.2, 0.4, 0.6, 0.8}. | ✅ Resolved in Phase 6 |
+| 9 | Random instance distribution | **Uniform in unit square** with min_separation=0.001 to prevent zero-cost edges. Clustered instances deferred to future robustness testing. | ✅ Resolved in Phase 6 |
 
 ## Phase 7: Analysis — PENDING
 

@@ -226,3 +226,49 @@
   - `test_replay_different_strategies`: both strategies replay exactly
   - `test_deterministic_full_run`: 20 seeds produce identical results
   - `test_hand_worked_example_reproduction`: Phase 2 example reproduced exactly
+
+## [Phase 6 Complete] - 2026-10-21
+### Controlled Experimental Framework
+- **src/algorithms/local_search/two_opt.py**: Suffix-aware 2-opt support
+  - Added `min_i: int = 0` to preserve immutable frozen prefix $(0, \dots, p_f)$
+  - Preserves 100% backward compatibility and strictly respects frozen-prefix rule
+
+- **src/simulation/simulator.py**: Integrated budget controls & suffix 2-opt
+  - `Simulator` accepts `max_passes` and `max_evaluations`
+  - Eliminates duplicate vertex / route reconstruction slicing bug
+  - Both strategies run to budget cutoff or local optimum
+
+- **src/adaptive_route_optimization/experiments/schema.py**: Structured schemas
+  - `BudgetType`, `BudgetConfig`, `ConditionConfig`, `ExperimentConfig`
+  - `RunRecord`: standard schema for single simulation run with full metric recording
+  - `StepRecord`: standard schema for step-by-step dynamic tracking
+  - JSON serialization, loading, and strict validation
+
+- **src/adaptive_route_optimization/experiments/manifest.py**: Reproducibility manifest
+  - Captures Git commit hash, clean tree status, Python version, platform/hardware, package versions
+  - Tracks total conditions, planned runs, completed runs, failure logs, and output paths
+
+- **src/adaptive_route_optimization/experiments/runner.py**: Batch experiment runner
+  - Executes condition matrix $\times$ seeds $\times$ strategies
+  - Strictly guarantees Rule 10: identical instance and dynamic event sequences across strategies
+  - Failure recovery: logs failed conditions and continues batch execution
+  - Structured output generation: `runs.csv`, `steps.csv`, `runs.json`, `manifest.json`
+
+- **src/adaptive_route_optimization/experiments/reproduce.py**: Reproducibility system
+  - CLI and API `verify_reproducibility` to re-execute from manifest
+  - Verifies exact floating-point and integer equality across runs
+
+- **configs/pilot_matrix.json** & **configs/budgeted_pilot.json**: Standard experiment configs
+  - Sizes $n \in \{50, 100, 200\}$, dynamicity $\alpha \in \{0.1, 0.2, 0.4, 0.6, 0.8\}$
+  - Budget cap variations (200 evals, 500 evals, unbounded)
+
+- **tests/test_experiments.py**: 12 unit & integration tests
+  - Schema roundtrip, condition validation, manifest capture
+  - Suffix 2-opt prefix preservation
+  - Batch runner execution, identical instance parity (Rule 10), budget enforcement
+  - Manifest reproducibility verification
+  - Adversarial edge cases: zero dynamicity ($\alpha = 0$), $n=2$ minimal instance, failure recovery
+
+- **Phase 6 Gate**: "one command runs a full experiment matrix and produces raw results with no manual intervention" — VERIFIED
+  - Executed 60-run pilot matrix in 141.13s with zero failures
+  - Re-run from manifest confirmed byte-for-byte exact reproducibility with 0 discrepancies

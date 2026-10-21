@@ -1,0 +1,172 @@
+{
+  "experiment_name": "pilot_matrix",
+  "git_commit_hash": "ed28ef41000b56acc22201598b1f9019e414412d",
+  "git_is_clean": false,
+  "start_time": "2026-10-21T15:08:34.493410",
+  "end_time": "2026-10-21T15:10:55.356462",
+  "environment": {
+    "python_version": "3.13.2",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "numpy_version": "2.4.0",
+    "pandas_version": "2.3.3",
+    "matplotlib_version": "3.10.8"
+  },
+  "total_conditions": 10,
+  "total_seeds": 3,
+  "total_planned_runs": 60,
+  "completed_runs": 60,
+  "failed_runs": 0,
+  "output_files": {
+    "runs_csv": "results/pilot_matrix\\runs.csv",
+    "runs_json": "results/pilot_matrix\\runs.json",
+    "steps_csv": "results/pilot_matrix\\steps.csv",
+    "manifest_json": "results/pilot_matrix\\manifest.json"
+  },
+  "metadata": {
+    "description": "Phase 6 pilot matrix across sizes {50, 100, 200} and dynamicity {0.1, 0.2, 0.4, 0.6, 0.8} to profile runtime and validate batch framework",
+    "failures": [],
+    "conditions": [
+      {
+        "condition_id": "n50_d0.1",
+        "total_vertices": 50,
+        "dynamicity": 0.1,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded local optimum search to establish baseline frontier"
+        }
+      },
+      {
+        "condition_id": "n50_d0.2",
+        "total_vertices": 50,
+        "dynamicity": 0.2,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded local optimum search to establish baseline frontier"
+        }
+      },
+      {
+        "condition_id": "n50_d0.4",
+        "total_vertices": 50,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded local optimum search to establish baseline frontier"
+        }
+      },
+      {
+        "condition_id": "n50_d0.6",
+        "total_vertices": 50,
+        "dynamicity": 0.6,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded local optimum search to establish baseline frontier"
+        }
+      },
+      {
+        "condition_id": "n50_d0.8",
+        "total_vertices": 50,
+        "dynamicity": 0.8,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded local optimum search to establish baseline frontier"
+        }
+      },
+      {
+        "condition_id": "n100_d0.2",
+        "total_vertices": 100,
+        "dynamicity": 0.2,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded local optimum search to establish baseline frontier"
+        }
+      },
+      {
+        "condition_id": "n100_d0.4",
+        "total_vertices": 100,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded local optimum search to establish baseline frontier"
+        }
+      },
+      {
+        "condition_id": "n100_d0.6",
+        "total_vertices": 100,
+        "dynamicity": 0.6,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded local optimum search to establish baseline frontier"
+        }
+      },
+      {
+        "condition_id": "n200_d0.2",
+        "total_vertices": 200,
+        "dynamicity": 0.2,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded local optimum search to establish baseline frontier"
+        }
+      },
+      {
+        "condition_id": "n200_d0.4",
+        "total_vertices": 200,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded local optimum search to establish baseline frontier"
+        }
+      }
+    ]
+  }
+}

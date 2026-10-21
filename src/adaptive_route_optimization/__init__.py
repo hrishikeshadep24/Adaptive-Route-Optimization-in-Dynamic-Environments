@@ -40,6 +40,23 @@ from adaptive_route_optimization.simulation import (
     animate_route_state,
 )
 
+# Experiments (Phase 6)
+from adaptive_route_optimization.experiments import (
+    BudgetType,
+    BudgetConfig,
+    ConditionConfig,
+    ExperimentConfig,
+    RunRecord,
+    StepRecord,
+    ExperimentManifest,
+    create_manifest,
+    get_git_commit_hash,
+    get_environment_info,
+    ExperimentRunner,
+    run_experiment,
+    verify_reproducibility,
+)
+
 __version__ = "0.1.0"
 
 __all__ = [
@@ -70,4 +87,18 @@ __all__ = [
     "SimulationLogger",
     "SimulationLog",
     "animate_route_state",
+    # Experiments (Phase 6)
+    "BudgetType",
+    "BudgetConfig",
+    "ConditionConfig",
+    "ExperimentConfig",
+    "RunRecord",
+    "StepRecord",
+    "ExperimentManifest",
+    "create_manifest",
+    "get_git_commit_hash",
+    "get_environment_info",
+    "ExperimentRunner",
+    "run_experiment",
+    "verify_reproducibility",
 ]

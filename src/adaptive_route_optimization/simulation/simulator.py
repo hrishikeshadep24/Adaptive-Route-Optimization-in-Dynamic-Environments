@@ -236,6 +236,8 @@ class Simulator:
         instance: Instance,
         event_sequence: EventSequence,
         freeze_per_step: int = 1,
+        max_passes: Optional[int] = None,
+        max_evaluations: Optional[int] = None,
         strategy_a_func: Optional[Callable] = None,
         strategy_b_func: Optional[Callable] = None,
     ) -> None:
@@ -245,12 +247,16 @@ class Simulator:
             instance: Full problem instance (hidden from strategies).
             event_sequence: Deterministic event sequence.
             freeze_per_step: Vertices to advance in frozen prefix per step (default 1).
+            max_passes: Optional limit on 2-opt passes per update (budget control).
+            max_evaluations: Optional limit on evaluations per update (budget control).
             strategy_a_func: Custom Strategy A function (default: greedy_insertion_repair).
             strategy_b_func: Custom Strategy B function (default: strategy_b_repair).
         """
         self.instance = instance
         self.event_sequence = event_sequence
         self.freeze_per_step = freeze_per_step
+        self.max_passes = max_passes
+        self.max_evaluations = max_evaluations
         self._strategy_a = strategy_a_func or greedy_insertion_repair
         self._strategy_b = strategy_b_func or strategy_b_repair
 
@@ -363,31 +369,42 @@ class Simulator:
                 updated_suffix, ins_evals, ins_deltas = cheapest_insertion_on_suffix(
                     state.instance, suffix_vertices, sorted_new
                 )
+            full_route = state.reconstruct_route_from_suffix(updated_suffix)
             computational_effort = ins_evals
-            # Store suffix vertices in repair result (not a full Route)
             repair_result = InsertionResult(
-                route=state.reconstruct_route_from_suffix(updated_suffix),  # Full reconstructed route
-                cost=0.0,  # Will be recalculated after reconstruction
+                route=full_route,
+                cost=full_route.cost(state.instance),
                 candidate_evaluations=ins_evals,
                 deltas=ins_deltas,
             )
 
         elif strategy == Strategy.B:
             with TimedOperation() as timer:
-                # For Strategy B, do insertion on suffix, then 2-opt on full reconstructed route
+                # Suffix insertion
                 updated_suffix, ins_evals, ins_deltas = cheapest_insertion_on_suffix(
                     state.instance, suffix_vertices, sorted_new
                 )
-                # Reconstruct full route for 2-opt
                 temp_route = state.reconstruct_route_from_suffix(updated_suffix)
-                # Run 2-opt on full route (simplified - runs on full route not just suffix)
-                two_opt_result = two_opt(state.instance, temp_route)
+
+                remaining_evals = None
+                if self.max_evaluations is not None:
+                    remaining_evals = max(0, self.max_evaluations - ins_evals)
+
+                # Suffix-only 2-opt preserving frozen prefix (min_i = state.frozen_prefix_length)
+                two_opt_result = two_opt(
+                    state.instance,
+                    temp_route,
+                    max_passes=self.max_passes,
+                    max_evaluations=remaining_evals,
+                    min_i=state.frozen_prefix_length,
+                )
                 final_route = two_opt_result.route
-                updated_suffix = final_route.vertices[state.frozen_prefix_length:]
                 computational_effort = ins_evals + two_opt_result.candidate_evaluations
+
+            full_route = final_route
             repair_result = InsertionTwoOptResult(
-                route=final_route,  # Full route after 2-opt
-                cost=0.0,
+                route=final_route,
+                cost=final_route.cost(state.instance),
                 insertion_evaluations=ins_evals,
                 two_opt_evaluations=two_opt_result.candidate_evaluations,
                 total_evaluations=computational_effort,
@@ -398,10 +415,6 @@ class Simulator:
 
         else:
             raise ValueError(f"Unknown strategy: {strategy}")
-
-        # Reconstruct full route: frozen prefix + updated suffix
-        # Avoid duplicating the last frozen vertex
-        full_route = state.reconstruct_route_from_suffix(updated_suffix)
 
         # Compute metrics
         metrics = evaluate_route(
@@ -437,10 +450,18 @@ def run_simulation(
     event_sequence: EventSequence,
     strategy: Strategy,
     freeze_per_step: int = 1,
+    max_passes: Optional[int] = None,
+    max_evaluations: Optional[int] = None,
     seed: int = 0,
 ) -> SimulationResult:
     """Convenience function to run a single simulation."""
-    sim = Simulator(instance, event_sequence, freeze_per_step=freeze_per_step)
+    sim = Simulator(
+        instance,
+        event_sequence,
+        freeze_per_step=freeze_per_step,
+        max_passes=max_passes,
+        max_evaluations=max_evaluations,
+    )
     return sim.run(strategy, seed=seed)
 
 
@@ -448,8 +469,16 @@ def run_both_strategies(
     instance: Instance,
     event_sequence: EventSequence,
     freeze_per_step: int = 1,
+    max_passes: Optional[int] = None,
+    max_evaluations: Optional[int] = None,
     seed: int = 0,
 ) -> tuple[SimulationResult, SimulationResult]:
     """Convenience function to run both strategies."""
-    sim = Simulator(instance, event_sequence, freeze_per_step=freeze_per_step)
+    sim = Simulator(
+        instance,
+        event_sequence,
+        freeze_per_step=freeze_per_step,
+        max_passes=max_passes,
+        max_evaluations=max_evaluations,
+    )
     return sim.run_both_strategies(seed=seed)
