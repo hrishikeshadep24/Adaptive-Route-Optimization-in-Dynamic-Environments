@@ -77,6 +77,21 @@ from adaptive_route_optimization.analysis import (
     run_pipeline,
 )
 
+# Adaptive Strategy Selection (Phase 8)
+from adaptive_route_optimization.algorithms.adaptive import (
+    StateFeatures,
+    extract_features,
+    StrategyChoice,
+    SelectorConfig,
+    SelectionDecision,
+    AdaptiveSelector,
+    PartitionDefinition,
+    DataSplitManifest,
+    get_default_data_split,
+    RegretSummary,
+    OracleEvaluator,
+)
+
 __version__ = "0.1.0"
 
 __all__ = [
@@ -89,6 +104,18 @@ __all__ = [
     "two_opt",
     "greedy_insertion_repair",
     "strategy_b_repair",
+    # Adaptive (Phase 8)
+    "StateFeatures",
+    "extract_features",
+    "StrategyChoice",
+    "SelectorConfig",
+    "SelectionDecision",
+    "AdaptiveSelector",
+    "PartitionDefinition",
+    "DataSplitManifest",
+    "get_default_data_split",
+    "RegretSummary",
+    "OracleEvaluator",
     # Evaluation
     "compute_disruption",
     "evaluate_route",

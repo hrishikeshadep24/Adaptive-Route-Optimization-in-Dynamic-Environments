@@ -1,0 +1,149 @@
+{
+  "name": "held_out_matrix",
+  "description": "Phase 8 final evaluation on strictly held-out seeds [1234, 5678, 9999] comparing Always A, Always B, and Adaptive Selector",
+  "seeds": [1234, 5678, 9999],
+  "strategies": ["A", "B", "ADAPTIVE"],
+  "output_dir": "results/held_out_matrix",
+  "conditions": [
+    {
+      "condition_id": "n50_d0.1",
+      "total_vertices": 50,
+      "dynamicity": 0.1,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+      }
+    },
+    {
+      "condition_id": "n50_d0.2",
+      "total_vertices": 50,
+      "dynamicity": 0.2,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+      }
+    },
+    {
+      "condition_id": "n50_d0.4",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+      }
+    },
+    {
+      "condition_id": "n50_d0.6",
+      "total_vertices": 50,
+      "dynamicity": 0.6,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+      }
+    },
+    {
+      "condition_id": "n50_d0.8",
+      "total_vertices": 50,
+      "dynamicity": 0.8,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+      }
+    },
+    {
+      "condition_id": "n100_d0.2",
+      "total_vertices": 100,
+      "dynamicity": 0.2,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+      }
+    },
+    {
+      "condition_id": "n100_d0.4",
+      "total_vertices": 100,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+      }
+    },
+    {
+      "condition_id": "n100_d0.6",
+      "total_vertices": 100,
+      "dynamicity": 0.6,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+      }
+    },
+    {
+      "condition_id": "n200_d0.2",
+      "total_vertices": 200,
+      "dynamicity": 0.2,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+      }
+    },
+    {
+      "condition_id": "n200_d0.4",
+      "total_vertices": 200,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+      }
+    }
+  ]
+}

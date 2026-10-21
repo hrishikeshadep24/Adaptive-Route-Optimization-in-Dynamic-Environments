@@ -19,21 +19,21 @@
 | 8 | Exact instance sizes for pilot vs full campaign | Pilot matrix uses **50, 100, 200** across dynamicity {0.1, 0.2, 0.4, 0.6, 0.8}. | ✅ Resolved in Phase 6 |
 | 9 | Random instance distribution | **Uniform in unit square** with min_separation=0.001 to prevent zero-cost edges. Clustered instances deferred to future robustness testing. | ✅ Resolved in Phase 6 |
 
-## Phase 7: Analysis — PENDING
+## Phase 7: Analysis — RESOLVED in Phase 7
 
-| # | Question | Recommendation | Status |
-|---|----------|----------------|--------|
-| 10 | Statistical tests | **Paired tests** (same instance/events): Wilcoxon signed-rank (non-parametric) + paired t-test (if normal). Report 95% bootstrap CIs. | ⏳ Deferred to Phase 7 |
-| 11 | Effect size measures | **Cliff's delta** (non-parametric) + Cohen's d (parametric). Report both. | ⏳ Deferred to Phase 7 |
-| 12 | Held-out validation for adaptive selector | If Phase 8 proceeds: **70/30 split** on instance families (not just seeds). Features derived from development set only. | ⏳ Deferred to Phase 8 |
+| # | Question | Recommendation / Resolution | Status |
+|---|----------|-----------------------------|--------|
+| 10 | Statistical tests | **Paired tests** (same instance/events): Wilcoxon signed-rank + paired t-test + Shapiro-Wilk + 95% bootstrap CIs (10,000 resamples). | ✅ Resolved in Phase 7 |
+| 11 | Effect size measures | **Matched-pairs rank-biserial correlation $r$** (non-parametric) + **Cohen's $d_z$** (parametric). Both reported. | ✅ Resolved in Phase 7 |
+| 12 | Held-out validation for adaptive selector | Formally partitioned into Development (seeds 42, 101), Validation (seed 777), and Held-Out (seeds 1234, 5678, 9999). | ✅ Resolved in Phase 8 |
 
-## Phase 8: Adaptive Selection (Conditional) — PENDING
+## Phase 8: Adaptive Selection — RESOLVED in Phase 8
 
-| # | Question | Recommendation | Status |
-|---|----------|----------------|--------|
-| 13 | State features at decision time | Cheap features: current route cost, |V_t|, |Δ_t|, disruption of last step, frozen prefix length, budget remaining. | ⏳ Deferred to Phase 8 |
-| 14 | Selection overhead budget | Count feature extraction + decision as **candidate evaluations**; include in budget. | ⏳ Deferred to Phase 8 |
-| 15 | Oracle definition for regret | **Per-instance per-event oracle**: best strategy cost in hindsight (from same experiment data). Regret = selected - oracle. | ⏳ Deferred to Phase 8 |
+| # | Question | Recommendation / Resolution | Status |
+|---|----------|-----------------------------|--------|
+| 13 | State features at decision time | Cheap observable features: $n$, $|V_t|$, $f_t$, uncommitted suffix count, $|\Delta_t|$, $\alpha$, current cost $C(S_t)$, remaining budget, estimated 2-opt evals. Zero future information leakage. | ✅ Resolved in Phase 8 |
+| 14 | Selection overhead budget | Charged **+1 candidate evaluation** per decision step for feature extraction and rule evaluation; tracked in all logs. | ✅ Resolved in Phase 8 |
+| 15 | Oracle definition for regret | **Hindsight Oracle**: $\min(\text{Cost}_A, \text{Cost}_B)$ evaluated on identical instance/event streams. Regret = $\text{Cost}_{\text{Adaptive}} - \text{Cost}_{\text{Oracle}}$. | ✅ Resolved in Phase 8 |
 
 ## Additional Clarifications from Phase 2 Work
 

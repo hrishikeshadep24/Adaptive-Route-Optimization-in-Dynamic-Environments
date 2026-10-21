@@ -1,0 +1,14 @@
+{
+  "total_instances": 30,
+  "mean_cost_adaptive": 944.7083736673679,
+  "mean_cost_oracle": 952.7914945967798,
+  "mean_cost_strategy_a": 1023.1308878648979,
+  "mean_cost_strategy_b": 969.6774193338719,
+  "mean_absolute_regret": -8.083120929411818,
+  "median_absolute_regret": 0.0,
+  "max_absolute_regret": 97.24094767328188,
+  "mean_relative_regret_pct": -0.8669829400757787,
+  "zero_regret_rate_pct": 40.0,
+  "better_than_strategy_a_pct": 93.33333333333333,
+  "better_than_strategy_b_pct": 43.333333333333336
+}

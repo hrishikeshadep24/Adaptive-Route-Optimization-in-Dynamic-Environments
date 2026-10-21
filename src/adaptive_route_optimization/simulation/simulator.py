@@ -38,6 +38,7 @@ class Strategy(Enum):
     """Update strategy to apply."""
     A = "greedy_insertion"      # Strategy A: Greedy Insertion Repair
     B = "insertion_two_opt"     # Strategy B: Insertion + 2-opt Repair
+    ADAPTIVE = "adaptive"       # Strategy Adaptive: Interpretable Adaptive Strategy Selector (Phase 8)
 
 
 def cheapest_insertion_on_suffix(
@@ -240,6 +241,7 @@ class Simulator:
         max_evaluations: Optional[int] = None,
         strategy_a_func: Optional[Callable] = None,
         strategy_b_func: Optional[Callable] = None,
+        selector: Optional[Any] = None,
     ) -> None:
         """Initialize simulator.
 
@@ -251,12 +253,14 @@ class Simulator:
             max_evaluations: Optional limit on evaluations per update (budget control).
             strategy_a_func: Custom Strategy A function (default: greedy_insertion_repair).
             strategy_b_func: Custom Strategy B function (default: strategy_b_repair).
+            selector: Optional AdaptiveSelector instance for Strategy.ADAPTIVE (Phase 8).
         """
         self.instance = instance
         self.event_sequence = event_sequence
         self.freeze_per_step = freeze_per_step
         self.max_passes = max_passes
         self.max_evaluations = max_evaluations
+        self.selector = selector
         self._strategy_a = strategy_a_func or greedy_insertion_repair
         self._strategy_b = strategy_b_func or strategy_b_repair
 
@@ -364,21 +368,39 @@ class Simulator:
         # Convert new_vertices to sorted list for deterministic processing
         sorted_new = sorted(new_vertices)
 
-        if strategy == Strategy.A:
+        # Handle Adaptive Strategy Selection (Phase 8)
+        overhead_evals = 0
+        effective_strategy = strategy
+        if strategy == Strategy.ADAPTIVE:
+            from adaptive_route_optimization.algorithms.adaptive.features import extract_features
+            from adaptive_route_optimization.algorithms.adaptive.selector import AdaptiveSelector, StrategyChoice
+            sel = self.selector or AdaptiveSelector()
+            features = extract_features(
+                state=state,
+                new_vertices=new_vertices,
+                total_vertices=self.event_sequence.config.total_vertices,
+                initial_known_count=len(self.event_sequence.initial_known) - 1,
+                remaining_eval_budget=self.max_evaluations,
+            )
+            decision = sel.select(features)
+            effective_strategy = Strategy.A if decision.chosen_strategy == StrategyChoice.A else Strategy.B
+            overhead_evals = decision.overhead_evaluations
+
+        if effective_strategy == Strategy.A:
             with TimedOperation() as timer:
                 updated_suffix, ins_evals, ins_deltas = cheapest_insertion_on_suffix(
                     state.instance, suffix_vertices, sorted_new
                 )
             full_route = state.reconstruct_route_from_suffix(updated_suffix)
-            computational_effort = ins_evals
+            computational_effort = ins_evals + overhead_evals
             repair_result = InsertionResult(
                 route=full_route,
                 cost=full_route.cost(state.instance),
-                candidate_evaluations=ins_evals,
+                candidate_evaluations=computational_effort,
                 deltas=ins_deltas,
             )
 
-        elif strategy == Strategy.B:
+        elif effective_strategy == Strategy.B:
             with TimedOperation() as timer:
                 # Suffix insertion
                 updated_suffix, ins_evals, ins_deltas = cheapest_insertion_on_suffix(
@@ -388,7 +410,7 @@ class Simulator:
 
                 remaining_evals = None
                 if self.max_evaluations is not None:
-                    remaining_evals = max(0, self.max_evaluations - ins_evals)
+                    remaining_evals = max(0, self.max_evaluations - ins_evals - overhead_evals)
 
                 # Suffix-only 2-opt preserving frozen prefix (min_i = state.frozen_prefix_length)
                 two_opt_result = two_opt(
@@ -399,7 +421,7 @@ class Simulator:
                     min_i=state.frozen_prefix_length,
                 )
                 final_route = two_opt_result.route
-                computational_effort = ins_evals + two_opt_result.candidate_evaluations
+                computational_effort = ins_evals + two_opt_result.candidate_evaluations + overhead_evals
 
             full_route = final_route
             repair_result = InsertionTwoOptResult(
@@ -443,6 +465,16 @@ class Simulator:
         result_a = self.run(Strategy.A, seed=seed)
         result_b = self.run(Strategy.B, seed=seed)
         return result_a, result_b
+
+    def run_all_strategies(self, seed: int = 0) -> tuple[SimulationResult, SimulationResult, SimulationResult]:
+        """Run Strategy A, Strategy B, and Strategy ADAPTIVE on the same instance and event sequence.
+
+        Enforces fair comparison across all three policies under identical conditions.
+        """
+        result_a = self.run(Strategy.A, seed=seed)
+        result_b = self.run(Strategy.B, seed=seed)
+        result_adapt = self.run(Strategy.ADAPTIVE, seed=seed)
+        return result_a, result_b, result_adapt
 
 
 def run_simulation(

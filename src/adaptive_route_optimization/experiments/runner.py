@@ -139,7 +139,16 @@ class ExperimentRunner:
 
                 # 4. Execute each strategy on this exact same instance and event stream
                 for strat_name in self.config.strategies:
-                    strat_enum = Strategy.A if strat_name.upper() == "A" else Strategy.B
+                    upper_name = strat_name.upper()
+                    if upper_name == "A":
+                        strat_enum = Strategy.A
+                    elif upper_name == "B":
+                        strat_enum = Strategy.B
+                    elif upper_name in ("ADAPTIVE", "ADAPT"):
+                        strat_enum = Strategy.ADAPTIVE
+                    else:
+                        raise ValueError(f"Unknown strategy name: {strat_name}")
+
                     run_id = f"{condition.condition_id}_s{seed}_{strat_name}"
 
                     try:

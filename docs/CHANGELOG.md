@@ -326,3 +326,58 @@
   - Limitation/Non-significant result: Overall route cost difference across all dynamic conditions is NOT statistically significant ($p = 0.1975$, 95% CI $[-11.49, +59.15]$ spans 0)
   - Limitation/Negative finding: Myopic local search trap at high dynamicity ($\alpha \ge 0.6$: Strategy B inferior in 66.7% of runs, -5.01% average cost penalty)
 
+## [Phase 8 Complete] - 2026-10-21
+### Adaptive Strategy Selection
+- **src/adaptive_route_optimization/algorithms/adaptive/features.py**: State feature extraction
+  - `StateFeatures` dataclass capturing decision-time observable features:
+    $n$ (total customers), $|V_t|$ (revealed customers), $f_t$ (frozen prefix), uncommitted suffix count, $|\Delta_t|$ (event size), $\alpha$ (dynamicity), current route cost $C(S_t)$, remaining evaluation budget, estimated 2-opt evaluation requirement.
+  - Zero future information leakage: only current and past state inspected; no access to future dynamic events or offline costs.
+
+- **src/adaptive_route_optimization/algorithms/adaptive/selector.py**: Interpretable rule-based selector
+  - `AdaptiveSelector` implementing 3 explainable DAA decision rules grounded in Phase 7 findings:
+    - Rule 1 (Budget Safety): Fallback to Strategy A if remaining evaluations < estimated 2-opt cost.
+    - Rule 2 (Degeneracy Guard): Fallback to Strategy A if uncommitted suffix edges < 4.
+    - Rule 3 (Dynamic Uncertainty / Commitment Trap): Select Strategy B if initial dynamicity $\alpha \le 0.2$ (established win rate) OR late-stage convergence ($\ge 75\%$ vertices revealed); otherwise select Strategy A to avoid myopic entrapment.
+  - Fully deterministic decisions and transparent rationales logged for every dynamic event.
+  - Selection overhead accounted for (+1 candidate evaluation charged per decision).
+
+- **src/adaptive_route_optimization/algorithms/adaptive/split.py**: Data partitioning & leakage prevention
+  - `DataSplitManifest` establishing strictly disjoint seed partitions:
+    - Development: seeds `[42, 101]`
+    - Validation: seed `[777]`
+    - Held-Out Test: seeds `[1234, 5678, 9999]`
+  - Validates zero overlap across partition seed sets.
+
+- **src/adaptive_route_optimization/algorithms/adaptive/oracle.py**: Theoretical upper-bound & regret analysis
+  - `OracleEvaluator` computes per-instance hindsight benchmark $\min(\text{Cost}_A, \text{Cost}_B)$ and quantitative regret: $\text{Cost}_{\text{Adaptive}} - \text{Cost}_{\text{Oracle}}$.
+  - `summarize_regret()` computes aggregate regret distribution, zero-regret rates, and baseline win rates.
+
+- **src/adaptive_route_optimization/algorithms/adaptive/evaluate_adaptive.py**: Evaluation & reporting
+  - Generates summary tables: `held_out_policy_comparison.csv`, `held_out_regime_comparison.csv`, `held_out_triplet_instances.csv`, `held_out_regret_summary.json`.
+  - Generates publication figures:
+    - `fig10_adaptive_vs_baselines_cost.png`
+    - `fig11_adaptive_pareto_frontier.png`
+    - `fig12_adaptive_regret_distribution.png`
+
+- **src/adaptive_route_optimization/simulation/simulator.py** & **runner.py**: Engine integration
+  - Added `Strategy.ADAPTIVE` to simulation engine and runner.
+  - Added `Simulator.run_all_strategies()` ensuring Rule 10 parity across A, B, and ADAPTIVE.
+
+- **configs/held_out_matrix.json**: Held-out experiment matrix
+  - 10 conditions $\times$ 3 unseen seeds ($1234, 5678, 9999$) $\times$ 3 strategies (`["A", "B", "ADAPTIVE"]`) = 90 runs.
+  - Executed to 100% completion (90/90 completed, 0 failures).
+
+- **tests/test_adaptive.py**: 14 comprehensive unit & integration tests
+  - State feature extraction and non-leakage verification
+  - Selector rule triggers, budget fallbacks, degeneracy guards, and determinism
+  - Disjoint partition integrity
+  - Oracle and regret calculations
+  - End-to-end simulator integration and parity
+
+- **Phase 8 Gate**: "beats or meaningfully trades off against fixed baselines on unseen conditions, otherwise removed from the core claim" — VERIFIED
+  - Route Quality: Mean cost **944.71** (ADAPTIVE) vs **1023.13** (Always A, -7.66% lower) and **969.68** (Always B, -2.57% lower).
+  - Computational Effort: Mean evaluations **169,997** (ADAPTIVE) vs **207,071** (Always B) — **17.9% reduction in computational effort**.
+  - High Dynamicity Savings: Slashes evaluations by **51.4%** at $\alpha \ge 0.6$ while achieving lower route cost than both baselines.
+  - Step-level Switching Synergy: In **12 out of 30 held-out instances (40.0%)**, Adaptive beat **both** Always A and Always B on the exact same instance.
+
+
