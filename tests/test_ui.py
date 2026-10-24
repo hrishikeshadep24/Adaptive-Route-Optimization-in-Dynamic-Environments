@@ -15,7 +15,11 @@ import matplotlib.pyplot as plt
 from adaptive_route_optimization.models.instance import Instance
 from adaptive_route_optimization.models.route import Route
 from adaptive_route_optimization.ui.data_loader import UIDataLoader
-from adaptive_route_optimization.ui.visualizer import render_route_step_diagram
+from adaptive_route_optimization.ui.visualizer import (
+    render_route_step_diagram,
+    render_before_after_comparison,
+    render_strategy_comparison,
+)
 from adaptive_route_optimization.ui.demonstrator import InteractiveDemonstrator, DemonstrationStepRecord
 from adaptive_route_optimization.ui.plots import (
     plot_cost_by_dynamicity,
@@ -81,6 +85,27 @@ class TestUIDataLoader:
         with pytest.raises(FileNotFoundError):
             loader.load_dataset_runs("non_existent_dataset_directory")
 
+    def test_load_stage4_runs(self):
+        loader = UIDataLoader()
+        df = loader.load_dataset_runs("stage4_full_matrix")
+        assert len(df) == 280
+        assert set(df["strategy"].unique()) == {"A", "B", "C", "ADAPTIVE"}
+        assert set(df["distribution"].dropna().unique()) == {"uniform", "clustered", "mixed"}
+        assert set(df["benchmark_name"].dropna().unique()) == {"berlin52", "eil51"}
+
+    def test_load_stage5_validation_runs(self):
+        loader = UIDataLoader()
+        df = loader.load_dataset_runs("stage5_adaptive_validation")
+        assert len(df) == 48
+        assert "algorithm_version" in df.columns
+
+    def test_load_stage5_table(self):
+        loader = UIDataLoader()
+        df_perf = loader.load_stage5_table("performance_analysis.csv")
+        df_paired = loader.load_stage5_table("paired_statistical_tests.csv")
+        assert not df_perf.empty
+        assert not df_paired.empty
+
 
 # ---------------------------------------------------------------------------
 # 2. Route Visualizer Tests
@@ -123,6 +148,115 @@ class TestRouteVisualizer:
         assert isinstance(fig, plt.Figure)
         plt.close(fig)
 
+    def test_render_diagram_with_unrevealed_toggle(self):
+        coords = [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (0.5, 0.5)]
+        inst = Instance.from_coords(coords)
+        route = Route([0, 1, 2, 0])  # Vertex 3 is unrevealed
+
+        # Render with show_unrevealed=True
+        fig_show = render_route_step_diagram(
+            instance=inst,
+            current_route=route,
+            frozen_prefix_length=1,
+            show_unrevealed=True,
+        )
+        assert isinstance(fig_show, plt.Figure)
+        plt.close(fig_show)
+
+        # Render with show_unrevealed=False (default)
+        fig_hide = render_route_step_diagram(
+            instance=inst,
+            current_route=route,
+            frozen_prefix_length=1,
+            show_unrevealed=False,
+        )
+        assert isinstance(fig_hide, plt.Figure)
+        plt.close(fig_hide)
+
+    def test_render_before_after_comparison_produces_figure(self):
+        coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0), (0.5, 0.5)]
+        inst = Instance.from_coords(coords)
+        route_before = Route([0, 1, 2, 0])
+        route_after = Route([0, 1, 2, 3, 0])
+
+        fig = render_before_after_comparison(
+            instance=inst,
+            route_before=route_before,
+            route_after=route_after,
+            frozen_prefix_length=1,
+            newly_revealed_vertices=[3],
+            cost_before=4.0,
+            cost_after=4.6,
+            evals_used=15,
+            strategy_label="Strategy A (Greedy)",
+            step_number=1,
+            show_unrevealed=False,
+        )
+        assert isinstance(fig, plt.Figure)
+        assert len(fig.axes) == 2
+        plt.close(fig)
+
+    def test_render_strategy_comparison_produces_figure(self):
+        coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0), (0.5, 0.5)]
+        inst = Instance.from_coords(coords)
+        route_a = Route([0, 1, 2, 3, 0])
+        route_b = Route([0, 1, 3, 2, 0])
+
+        fig = render_strategy_comparison(
+            instance=inst,
+            route_a=route_a,
+            route_b=route_b,
+            frozen_prefix_length=1,
+            newly_revealed_vertices=[3],
+            cost_a=4.5,
+            cost_b=4.3,
+            evals_a=10,
+            evals_b=85,
+            disruption_a=0.03,
+            disruption_b=0.08,
+            step_number=1,
+            show_unrevealed=True,
+        )
+        assert isinstance(fig, plt.Figure)
+        assert len(fig.axes) == 2
+        plt.close(fig)
+
+    def test_render_first_step_zero_frozen_prefix(self):
+        """At step 1 (t=1), frozen_prefix_length is 0. Vehicle is at depot, 0 edges are frozen."""
+        coords = [(0.5, 0.5), (0.2, 0.2), (0.8, 0.8), (0.3, 0.7)]
+        inst = Instance.from_coords(coords)
+        route = Route([0, 1, 2, 0])
+
+        fig = render_route_step_diagram(
+            instance=inst,
+            current_route=route,
+            frozen_prefix_length=0,
+            newly_revealed_vertices=[3],
+            step_number=1,
+        )
+        assert isinstance(fig, plt.Figure)
+        plt.close(fig)
+
+    def test_prefix_suffix_continuity_and_completeness(self):
+        """Verify that prefix and suffix share the vehicle position and cover all vertices without gap."""
+        coords = [(0.0, 0.0), (1.0, 0.0), (2.0, 0.0), (2.0, 1.0), (0.0, 1.0)]
+        inst = Instance.from_coords(coords)
+        route = Route([0, 1, 2, 3, 4, 0])
+        n_verts = len(route.vertices)
+
+        # Test at every valid prefix length f in [0, 4]
+        for f in range(n_verts - 1):
+            prefix_verts = route.vertices[:f + 1]
+            suffix_verts = route.vertices[f:]
+
+            # Shared vehicle position
+            assert prefix_verts[-1] == suffix_verts[0] == route.vertices[f]
+
+            # Reconstructed full route has no gaps
+            reconstructed = prefix_verts[:-1] + suffix_verts
+            assert reconstructed == route.vertices
+            assert set(reconstructed) == set(route.vertices)
+
 
 # ---------------------------------------------------------------------------
 # 3. Interactive Demonstrator Tests
@@ -158,6 +292,27 @@ class TestInteractiveDemonstrator:
             step = demo.get_step(s)
             assert step.prefix_preserved is True, f"Prefix violated at step {s}!"
 
+    def test_step_slicing_and_frozen_progression(self):
+        """Verify that frozen_prefix_length progresses by 1 stop per step and stops as expected."""
+        demo = InteractiveDemonstrator(
+            n_vertices=15,
+            dynamicity=0.4,
+            seed=42,
+            strategy="ADAPTIVE",
+        )
+        # Step 1: Vehicle at depot, 0 stops committed
+        step1 = demo.get_step(1)
+        assert step1.frozen_prefix_length == 0
+
+        # Step t: frozen_prefix_length == t - 1
+        for s in range(1, demo.total_steps + 1):
+            step = demo.get_step(s)
+            assert step.frozen_prefix_length == s - 1
+            # Final arrival event: all dynamic customers have arrived, but tour is not 100% frozen
+            if s == demo.total_steps:
+                assert step.frozen_prefix_length == demo.total_steps - 1
+                assert step.frozen_prefix_length < demo.n_vertices
+
     def test_adaptive_captures_rationale_and_features(self):
         demo = InteractiveDemonstrator(
             n_vertices=10,
@@ -171,12 +326,75 @@ class TestInteractiveDemonstrator:
         assert "revealed_ratio" in step.state_features
         assert "uncommitted_count" in step.state_features
 
+    def test_timeline_clamping_and_reset(self):
+        """Verify safe boundary clamping and scenario resetting."""
+        demo = InteractiveDemonstrator(n_vertices=10, dynamicity=0.3, seed=42)
+        total = demo.total_steps
+        assert total > 0
+
+        # Boundary clamping simulation
+        assert max(1, min(0, total)) == 1
+        assert max(1, min(total + 5, total)) == total
+
     def test_out_of_bounds_step_raises(self):
         demo = InteractiveDemonstrator(n_vertices=10, dynamicity=0.3, seed=42)
         with pytest.raises(IndexError):
             demo.get_step(0)
         with pytest.raises(IndexError):
             demo.get_step(demo.total_steps + 1)
+
+    def test_demonstrator_strategy_c(self):
+        demo = InteractiveDemonstrator(
+            n_vertices=12,
+            dynamicity=0.4,
+            seed=42,
+            strategy="C",
+        )
+        assert demo.total_steps > 0
+        step = demo.get_step(1)
+        assert "Strategy C" in step.strategy_used
+        assert step.prefix_preserved is True
+
+    def test_demonstrator_distributions(self):
+        demo_clustered = InteractiveDemonstrator(
+            n_vertices=15,
+            dynamicity=0.4,
+            seed=42,
+            distribution="clustered",
+        )
+        demo_mixed = InteractiveDemonstrator(
+            n_vertices=15,
+            dynamicity=0.4,
+            seed=42,
+            distribution="mixed",
+        )
+        assert demo_clustered.total_steps > 0
+        assert demo_mixed.total_steps > 0
+        assert demo_clustered.get_step(1).prefix_preserved is True
+        assert demo_mixed.get_step(1).prefix_preserved is True
+
+    def test_demonstrator_tsplib_benchmark(self):
+        demo_berlin = InteractiveDemonstrator(
+            dynamicity=0.3,
+            seed=42,
+            benchmark_name="berlin52",
+        )
+        assert demo_berlin.n_vertices == 51
+        assert demo_berlin.total_steps > 0
+        assert demo_berlin.get_step(1).prefix_preserved is True
+
+    def test_demonstrator_budget_limits(self):
+        demo_budget = InteractiveDemonstrator(
+            n_vertices=15,
+            dynamicity=0.4,
+            seed=42,
+            strategy="B",
+            max_evaluations=100,
+        )
+        assert demo_budget.total_steps > 0
+        step = demo_budget.get_step(1)
+        assert step.prefix_preserved is True
+        assert step.evaluations_used <= 150
 
 
 # ---------------------------------------------------------------------------

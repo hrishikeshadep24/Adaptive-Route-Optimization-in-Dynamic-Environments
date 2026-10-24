@@ -37,3 +37,4 @@ results/figures/
 # Environment
 .env
 .env.local
+backups/

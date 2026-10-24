@@ -10,12 +10,24 @@ Main modules:
 - simulation: Dynamic simulation engine (Phase 5)
 """
 
-from adaptive_route_optimization.models import Instance, Route
+from adaptive_route_optimization.models import Instance, CustomerDistribution, Route
+from adaptive_route_optimization.benchmarks import (
+    TSPLIBMetadata,
+    TSPLIBInstance,
+    parse_tsplib_file,
+    load_tsplib_benchmark,
+    create_dynamic_scenario_from_instance,
+)
 from adaptive_route_optimization.algorithms.baseline import nearest_neighbor, exact_tsp
 from adaptive_route_optimization.algorithms.local_search import two_opt
 from adaptive_route_optimization.algorithms.repair import (
     greedy_insertion_repair,
     strategy_b_repair,
+    strategy_c_repair,
+    DestroyRepairConfig,
+    DestroyRepairResult,
+    DestroyOperator,
+    RepairOperator,
 )
 from adaptive_route_optimization.evaluation.metrics import (
     compute_disruption,
@@ -97,13 +109,25 @@ __version__ = "0.1.0"
 __all__ = [
     # Models
     "Instance",
+    "CustomerDistribution",
     "Route",
+    # Benchmarks (Stage 3)
+    "TSPLIBMetadata",
+    "TSPLIBInstance",
+    "parse_tsplib_file",
+    "load_tsplib_benchmark",
+    "create_dynamic_scenario_from_instance",
     # Algorithms
     "nearest_neighbor",
     "exact_tsp",
     "two_opt",
     "greedy_insertion_repair",
     "strategy_b_repair",
+    "strategy_c_repair",
+    "DestroyRepairConfig",
+    "DestroyRepairResult",
+    "DestroyOperator",
+    "RepairOperator",
     # Adaptive (Phase 8)
     "StateFeatures",
     "extract_features",

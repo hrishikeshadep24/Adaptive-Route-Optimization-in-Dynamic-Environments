@@ -36,6 +36,7 @@ class EventConfig:
     events_per_step: int = 1
     seed: int = 0
     vertex_order: str = "random"
+    batch_schedule: Optional[tuple[int, ...]] = None
 
     def __post_init__(self) -> None:
         if self.total_vertices < 0:
@@ -44,6 +45,12 @@ class EventConfig:
             raise ValueError("events_per_step must be at least 1")
         if self.vertex_order not in ("random", "index", "distance"):
             raise ValueError(f"Unknown vertex_order: {self.vertex_order}")
+        if self.batch_schedule is not None:
+            if not isinstance(self.batch_schedule, tuple):
+                object.__setattr__(self, "batch_schedule", tuple(self.batch_schedule))
+            for b_sz in self.batch_schedule:
+                if b_sz < 0:
+                    raise ValueError(f"Batch sizes in batch_schedule must be non-negative, got {b_sz}")
 
         # Validate dynamicity vs initial_known_count
         if self.dynamicity is not None:
@@ -158,11 +165,24 @@ class EventGenerator:
         # Remaining vertices to reveal
         remaining = ordered_customers[initial_count:]
 
-        # Generate events: batch remaining into events_per_step groups
+        # Generate events: batch remaining according to schedule or events_per_step
         events = []
-        for i in range(0, len(remaining), self.config.events_per_step):
-            batch = remaining[i : i + self.config.events_per_step]
-            events.append(frozenset(batch))
+        if self.config.batch_schedule is not None:
+            curr_idx = 0
+            for batch_size in self.config.batch_schedule:
+                if curr_idx < len(remaining):
+                    take = min(batch_size, len(remaining) - curr_idx)
+                    batch = remaining[curr_idx : curr_idx + take]
+                    curr_idx += take
+                else:
+                    batch = []
+                events.append(frozenset(batch))
+            if curr_idx < len(remaining):
+                events.append(frozenset(remaining[curr_idx:]))
+        else:
+            for i in range(0, len(remaining), self.config.events_per_step):
+                batch = remaining[i : i + self.config.events_per_step]
+                events.append(frozenset(batch))
 
         return EventSequence(
             initial_known=initial_known,
@@ -178,6 +198,7 @@ class EventGenerator:
         seed: int = 0,
         events_per_step: int = 1,
         vertex_order: str = "random",
+        batch_schedule: Optional[tuple[int, ...]] = None,
     ) -> EventGenerator:
         """Convenience constructor using dynamicity level."""
         config = EventConfig(
@@ -186,6 +207,7 @@ class EventGenerator:
             events_per_step=events_per_step,
             seed=seed,
             vertex_order=vertex_order,
+            batch_schedule=batch_schedule,
         )
         return cls(config)
 
@@ -197,6 +219,7 @@ class EventGenerator:
         seed: int = 0,
         events_per_step: int = 1,
         vertex_order: str = "random",
+        batch_schedule: Optional[tuple[int, ...]] = None,
     ) -> EventGenerator:
         """Convenience constructor using initial known count."""
         config = EventConfig(
@@ -205,6 +228,7 @@ class EventGenerator:
             events_per_step=events_per_step,
             seed=seed,
             vertex_order=vertex_order,
+            batch_schedule=batch_schedule,
         )
         return cls(config)
 
@@ -217,6 +241,7 @@ def generate_event_sequence(
     seed: int = 0,
     events_per_step: int = 1,
     vertex_order: str = "random",
+    batch_schedule: Optional[tuple[int, ...]] = None,
 ) -> EventSequence:
     """Convenience function to generate event sequence in one call.
 
@@ -242,6 +267,7 @@ def generate_event_sequence(
         events_per_step=events_per_step,
         seed=seed,
         vertex_order=vertex_order,
+        batch_schedule=batch_schedule,
     )
     generator = EventGenerator(config)
     return generator.generate(instance)

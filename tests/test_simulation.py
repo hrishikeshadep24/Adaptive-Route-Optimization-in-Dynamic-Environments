@@ -334,24 +334,56 @@ def test_strategies_same_instance_events(simple_instance, event_sequence):
 
 
 def test_frozen_prefix_enforced(simple_instance, event_sequence):
-    """Test that frozen prefix is enforced during repair."""
+    """Test that frozen prefix is explicitly preserved during repair for Strategy A."""
     sim = Simulator(simple_instance, event_sequence, freeze_per_step=1)
     result = sim.run(Strategy.A, seed=0)
 
-    # Check that frozen prefix advances each step
+    # Check that frozen prefix is strictly unchanged between previous and updated route
     for i, step in enumerate(result.steps):
-        expected_frozen = i + 1  # 1 per step
-        # The route at step i should have first expected_frozen+1 vertices frozen
-        # (including depot at index 0)
-        # This is implicitly tested by the fact that suffix is reconstructed correctly
+        expected_frozen = min(i * sim.freeze_per_step, len(step.previous_route.vertices) - 2)
+        prefix_len = expected_frozen + 1
+        assert step.updated_route.vertices[:prefix_len] == step.previous_route.vertices[:prefix_len]
+        for v in step.event_vertices:
+            assert v not in step.updated_route.vertices[:prefix_len]
+
+
+@pytest.mark.parametrize("strategy", [Strategy.A, Strategy.B, Strategy.ADAPTIVE])
+def test_frozen_prefix_enforced_across_all_strategies(strategy):
+    """Explicitly verify that committed prefix is preserved by Strategies A, B, and ADAPTIVE."""
+    inst = Instance.generate_random(n=20, seed=42)
+    seq = generate_event_sequence(
+        instance=inst,
+        total_vertices=20,
+        dynamicity=0.5,
+        seed=42,
+        events_per_step=1,
+    )
+    sim = Simulator(inst, seq, freeze_per_step=1)
+    result = sim.run(strategy, seed=42)
+
+    assert len(result.steps) > 0
+    assert result.all_feasible
+
+    for i, step in enumerate(result.steps):
+        expected_frozen = min(i * sim.freeze_per_step, len(step.previous_route.vertices) - 2)
+        prefix_len = expected_frozen + 1
+        assert step.updated_route.vertices[:prefix_len] == step.previous_route.vertices[:prefix_len], (
+            f"Strategy {strategy.value} modified committed prefix at step {i+1}!"
+        )
+        for v in step.event_vertices:
+            assert v not in step.updated_route.vertices[:prefix_len]
 
 
 def test_simulator_custom_freeze_per_step(simple_instance, event_sequence):
-    """Test simulator with custom freeze_per_step."""
+    """Test simulator with custom freeze_per_step=2 preserves prefix."""
     sim = Simulator(simple_instance, event_sequence, freeze_per_step=2)
     result = sim.run(Strategy.A, seed=0)
 
     assert result.all_feasible
+    for i, step in enumerate(result.steps):
+        expected_frozen = min(i * sim.freeze_per_step, len(step.previous_route.vertices) - 2)
+        prefix_len = expected_frozen + 1
+        assert step.updated_route.vertices[:prefix_len] == step.previous_route.vertices[:prefix_len]
 
 
 def test_step_result_structure(simple_instance, event_sequence):

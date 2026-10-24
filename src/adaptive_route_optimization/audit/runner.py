@@ -20,6 +20,7 @@ from adaptive_route_optimization.audit.inventory import (
     MetricType,
     CLAIMS_INVENTORY,
 )
+from adaptive_route_optimization.paths import resolve_repo_path
 from adaptive_route_optimization.audit.recompute import RawDataRecomputer
 from adaptive_route_optimization.audit.fairness import FairnessAuditor, FairnessCheckResult
 from adaptive_route_optimization.audit.reproducibility import (
@@ -32,7 +33,7 @@ class ResearchAuditor:
     """Executes the complete audit and reconciles all empirical claims."""
 
     def __init__(self, audit_dir: str = "results/audit") -> None:
-        self.audit_dir = audit_dir
+        self.audit_dir = resolve_repo_path(audit_dir)
         self.recomputer = RawDataRecomputer()
 
     def run_audit(self) -> dict[str, Any]:

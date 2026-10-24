@@ -10,6 +10,18 @@ from adaptive_route_optimization.algorithms.repair.insertion_two_opt import (
     insertion_then_two_opt,
     strategy_b_repair,
 )
+from adaptive_route_optimization.algorithms.repair.destroy_repair import (
+    DestroyOperator,
+    RepairOperator,
+    DestroyRepairConfig,
+    DestroyRepairResult,
+    destroy_random,
+    destroy_shaw,
+    repair_cheapest_suffix,
+    repair_regret2_suffix,
+    destroy_and_repair_suffix,
+    strategy_c_repair,
+)
 
 __all__ = [
     "InsertionResult",
@@ -18,4 +30,14 @@ __all__ = [
     "InsertionTwoOptResult",
     "insertion_then_two_opt",
     "strategy_b_repair",
+    "DestroyOperator",
+    "RepairOperator",
+    "DestroyRepairConfig",
+    "DestroyRepairResult",
+    "destroy_random",
+    "destroy_shaw",
+    "repair_cheapest_suffix",
+    "repair_regret2_suffix",
+    "destroy_and_repair_suffix",
+    "strategy_c_repair",
 ]

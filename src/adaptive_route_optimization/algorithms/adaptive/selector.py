@@ -41,9 +41,10 @@ class SelectorConfig:
     low_dyn_threshold: float = 0.2
     late_stage_threshold: float = 0.75
     min_suffix_for_2opt: int = 4
+    min_2opt_budget: int = 10
     budget_safety_margin: float = 1.0
     selection_overhead_evals: int = 1
-    name: str = "rule_v1_interpretable"
+    name: str = "rule_v2_budget_aware"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -103,13 +104,17 @@ class AdaptiveSelector:
         cfg = self.config
         overhead = cfg.selection_overhead_evals
 
-        # Rule 1: Computational Budget Feasibility
+        # Rule 1: Computational Budget Feasibility (Budget-limited 2-opt aware)
+        # Strategy B requires insertion plus at least min_2opt_budget evaluations to perform meaningful local search.
         if features.remaining_eval_budget is not None:
-            required_evals = int(features.estimated_2opt_evals * cfg.budget_safety_margin)
-            if features.remaining_eval_budget < required_evals:
+            k = max(1, features.event_size)
+            est_ins = k * features.uncommitted_count + (k * (k + 1)) // 2
+            min_2opt_budget = getattr(cfg, "min_2opt_budget", 10)
+            min_required = est_ins + min_2opt_budget
+            if features.remaining_eval_budget < min_required:
                 decision = SelectionDecision(
                     chosen_strategy=StrategyChoice.A,
-                    rationale=f"Budget fallback: remaining {features.remaining_eval_budget} < required {required_evals}",
+                    rationale=f"Budget fallback: remaining {features.remaining_eval_budget} < required {min_required} (ins={est_ins} + 2opt={min_2opt_budget})",
                     features=features,
                     overhead_evaluations=overhead,
                 )
@@ -132,7 +137,7 @@ class AdaptiveSelector:
         if features.initial_dynamicity <= cfg.low_dyn_threshold:
             decision = SelectionDecision(
                 chosen_strategy=StrategyChoice.B,
-                rationale=f"Low dynamicity (α={features.initial_dynamicity:.2f} <= {cfg.low_dyn_threshold:.2f}): high win rate for 2-opt",
+                rationale=f"Low dynamicity (alpha={features.initial_dynamicity:.2f} <= {cfg.low_dyn_threshold:.2f}): high win rate for 2-opt",
                 features=features,
                 overhead_evaluations=overhead,
             )
@@ -146,7 +151,7 @@ class AdaptiveSelector:
         else:
             decision = SelectionDecision(
                 chosen_strategy=StrategyChoice.A,
-                rationale=f"High dynamicity early-stage (α={features.initial_dynamicity:.2f}, revealed={features.revealed_ratio:.2f}): avoiding myopic trap",
+                rationale=f"High dynamicity early-stage (alpha={features.initial_dynamicity:.2f}, revealed={features.revealed_ratio:.2f}): avoiding myopic trap",
                 features=features,
                 overhead_evaluations=overhead,
             )

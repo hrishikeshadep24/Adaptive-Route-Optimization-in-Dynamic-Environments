@@ -3,9 +3,11 @@
 Provides step-by-step interactive simulation for visual inspection:
 - Tracks dynamic event arrivals (Δ_t).
 - Advances vehicle position (frozen prefix f_t).
-- Applies Strategy A, Strategy B, or ADAPTIVE.
+- Applies Strategy A (Greedy), Strategy B (2-opt), Strategy C (Destroy-Repair), or ADAPTIVE (Selector).
 - Verifies frozen-prefix invariance.
 - Captures decision-time state features and explainable rule rationales.
+- Supports Synthetic distributions (Uniform, Clustered, Mixed) and TSPLIB benchmarks (berlin52, eil51).
+- Supports evaluation budgets, pass budgets, and unbounded execution.
 """
 
 from __future__ import annotations
@@ -13,8 +15,9 @@ from dataclasses import dataclass, asdict
 from typing import Any, Optional, Sequence
 import numpy as np
 
-from adaptive_route_optimization.models.instance import Instance
+from adaptive_route_optimization.models.instance import Instance, CustomerDistribution
 from adaptive_route_optimization.models.route import Route
+from adaptive_route_optimization.benchmarks import load_tsplib_benchmark
 from adaptive_route_optimization.simulation.events import EventConfig, generate_event_sequence, EventSequence
 from adaptive_route_optimization.simulation.state import DynamicState, create_initial_state
 from adaptive_route_optimization.simulation.simulator import Simulator, Strategy
@@ -50,27 +53,48 @@ class InteractiveDemonstrator:
         seed: int = 42,
         strategy: str = "ADAPTIVE",
         max_evaluations: Optional[int] = 5000,
+        distribution: str = "uniform",
+        benchmark_name: Optional[str] = None,
+        max_passes: Optional[int] = None,
+        events_per_step: int = 1,
     ) -> None:
         self.n_vertices = n_vertices
         self.dynamicity = dynamicity
         self.seed = seed
         self.strategy_name = strategy
         self.max_evaluations = max_evaluations
+        self.distribution = distribution
+        self.benchmark_name = benchmark_name
+        self.max_passes = max_passes
+        self.events_per_step = events_per_step
 
-        # 1. Deterministic synthetic or reproducible instance
-        np.random.seed(seed)
-        coords = [(0.5, 0.5)]  # Depot at center
-        for _ in range(n_vertices):
-            coords.append((float(np.random.uniform(0.05, 0.95)), float(np.random.uniform(0.05, 0.95))))
-        self.instance = Instance.from_coords(coords)
+        # 1. Deterministic synthetic or TSPLIB benchmark instance
+        if benchmark_name:
+            tsplib_obj = load_tsplib_benchmark(benchmark_name)
+            self.instance = tsplib_obj.instance
+            self.n_vertices = self.instance.n
+        elif distribution == "uniform":
+            self.instance = Instance.generate_synthetic(
+                n=n_vertices,
+                distribution="uniform",
+                seed=seed,
+                x_range=(0.05, 0.95),
+                y_range=(0.05, 0.95),
+            )
+        else:
+            self.instance = Instance.generate_synthetic(
+                n=n_vertices,
+                distribution=distribution,
+                seed=seed,
+            )
 
         # 2. Event Sequence
-        initial_known = max(2, int(n_vertices * (1.0 - dynamicity)))
+        initial_known = max(2, int(self.n_vertices * (1.0 - dynamicity)))
         self.event_sequence = generate_event_sequence(
             instance=self.instance,
-            total_vertices=n_vertices,
+            total_vertices=self.n_vertices,
             initial_known_count=initial_known,
-            events_per_step=1,
+            events_per_step=events_per_step,
             seed=seed,
         )
 
@@ -87,6 +111,8 @@ class InteractiveDemonstrator:
             self.strategy_enum = Strategy.A
         elif upper_strat == "B":
             self.strategy_enum = Strategy.B
+        elif upper_strat == "C":
+            self.strategy_enum = Strategy.C
         else:
             self.strategy_enum = Strategy.ADAPTIVE
 
@@ -98,7 +124,6 @@ class InteractiveDemonstrator:
         """Run step-by-step recording complete visual state at each dynamic event."""
         current_state = self.initial_state
         selector = AdaptiveSelector()
-        cum_evals = 0
 
         for t in range(self.event_sequence.num_event_steps):
             event_verts = self.event_sequence.get_event_at_step(t)
@@ -120,7 +145,7 @@ class InteractiveDemonstrator:
                     new_vertices=event_verts,
                     total_vertices=self.n_vertices,
                     initial_known_count=len(self.event_sequence.initial_known) - 1,
-                    remaining_eval_budget=self.max_evaluations - cum_evals if self.max_evaluations else None,
+                    remaining_eval_budget=self.max_evaluations,
                 )
                 features_dict = feat.to_dict()
                 dec = selector.select(feat)
@@ -137,20 +162,32 @@ class InteractiveDemonstrator:
                 event_sequence=self.event_sequence,
                 freeze_per_step=1,
                 max_evaluations=self.max_evaluations,
+                max_passes=self.max_passes,
             )
             repair_result, updated_route, metrics = sim._apply_strategy(
-                effective_strategy, state_with_new, event_verts
+                effective_strategy, state_with_new, event_verts, seed=self.seed
             )
 
             cost_after = updated_route.cost(self.instance)
             step_evals = metrics.computational_effort + overhead_evals
-            cum_evals += step_evals
 
             # Invariant check: Frozen prefix must be strictly identical
-            # Prefix includes depot (idx 0) up to idx prefix_len
             prefix_before = route_before.vertices[: prefix_len + 1]
             prefix_after = updated_route.vertices[: prefix_len + 1]
             prefix_preserved = (prefix_before == prefix_after)
+
+            # Descriptive strategy label
+            if self.strategy_enum == Strategy.ADAPTIVE:
+                sub_strat = "Greedy" if effective_strategy == Strategy.A else "2-opt"
+                strat_label = f"ADAPTIVE ({sub_strat})"
+            elif effective_strategy == Strategy.A:
+                strat_label = "Strategy A (Greedy)"
+            elif effective_strategy == Strategy.B:
+                strat_label = "Strategy B (2-opt)"
+            elif effective_strategy == Strategy.C:
+                strat_label = "Strategy C (Destroy-Repair)"
+            else:
+                strat_label = str(effective_strategy.value)
 
             rec = DemonstrationStepRecord(
                 time_step=t + 1,
@@ -162,7 +199,7 @@ class InteractiveDemonstrator:
                 cost_after=cost_after,
                 evaluations_used=step_evals,
                 disruption=metrics.disruption,
-                strategy_used="Strategy A (Greedy)" if effective_strategy == Strategy.A else "Strategy B (2-opt)",
+                strategy_used=strat_label,
                 decision_rationale=decision_rationale,
                 state_features=features_dict,
                 prefix_preserved=prefix_preserved,

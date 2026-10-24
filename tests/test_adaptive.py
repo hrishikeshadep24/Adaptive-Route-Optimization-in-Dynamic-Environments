@@ -257,6 +257,58 @@ class TestAdaptiveSelector:
         decisions = [selector.select(feat).chosen_strategy for _ in range(10)]
         assert all(d == StrategyChoice.B for d in decisions)
 
+    def test_rule_budget_aware_below_and_above_threshold(self):
+        """Verify Rule 1 budget awareness across zero, small, below, and above thresholds."""
+        selector = AdaptiveSelector()
+        
+        # Suffix has uncommitted_count=20, event_size=1 -> est_ins = 21, min_required = 31 (21 + 10)
+        base_kwargs = dict(
+            total_vertices=50,
+            known_vertices_count=31,
+            frozen_prefix_length=10,
+            uncommitted_count=20,
+            event_size=1,
+            revealed_ratio=0.62,
+            uncommitted_ratio=0.65,
+            initial_dynamicity=0.15,  # Low dynamicity (prefers B if budget allows)
+            current_cost=200.0,
+            estimated_2opt_evals=210,
+        )
+
+        # Budget = 0 -> must choose Strategy A
+        f_0 = StateFeatures(**base_kwargs, remaining_eval_budget=0)
+        d_0 = selector.select(f_0)
+        assert d_0.chosen_strategy == StrategyChoice.A
+        assert "Budget fallback" in d_0.rationale
+
+        # Budget = 5 -> must choose Strategy A (5 < 31)
+        f_5 = StateFeatures(**base_kwargs, remaining_eval_budget=5)
+        d_5 = selector.select(f_5)
+        assert d_5.chosen_strategy == StrategyChoice.A
+        assert "Budget fallback" in d_5.rationale
+
+        # Budget = 25 -> must choose Strategy A (25 < 31)
+        f_25 = StateFeatures(**base_kwargs, remaining_eval_budget=25)
+        d_25 = selector.select(f_25)
+        assert d_25.chosen_strategy == StrategyChoice.A
+        assert "Budget fallback" in d_25.rationale
+
+        # Budget = 45 -> exceeds min_required (31), so partial 2-opt is viable -> chooses Strategy B
+        f_45 = StateFeatures(**base_kwargs, remaining_eval_budget=45)
+        d_45 = selector.select(f_45)
+        assert d_45.chosen_strategy == StrategyChoice.B
+        assert "Low dynamicity" in d_45.rationale
+
+        # Budget = 100 -> partial 2-opt viable -> chooses Strategy B
+        f_100 = StateFeatures(**base_kwargs, remaining_eval_budget=100)
+        d_100 = selector.select(f_100)
+        assert d_100.chosen_strategy == StrategyChoice.B
+
+        # Budget = 1000 -> full 2-opt viable -> chooses Strategy B
+        f_1000 = StateFeatures(**base_kwargs, remaining_eval_budget=1000)
+        d_1000 = selector.select(f_1000)
+        assert d_1000.chosen_strategy == StrategyChoice.B
+
 
 # ---------------------------------------------------------------------------
 # 3. Data Split & Non-Leakage Tests
@@ -389,3 +441,29 @@ class TestSimulationIntegration:
         # Identical instance coordinates
         assert np.allclose(res_a.instance.coords, res_adaptive.instance.coords)
         assert np.allclose(res_b.instance.coords, res_adaptive.instance.coords)
+
+    def test_adaptive_bounded_budget_feasibility_and_prefix(self):
+        """Verify that corrected Adaptive preserves feasibility and frozen prefix under B=50 and B=100."""
+        from adaptive_route_optimization.simulation.events import EventConfig, EventGenerator
+        inst = Instance.generate_random(n=15, seed=123)
+        cfg = EventConfig(total_vertices=15, dynamicity=0.2, events_per_step=1, seed=123)
+        seq = EventGenerator(cfg).generate(inst)
+
+        for b in [0, 5, 50, 100]:
+            sim = Simulator(instance=inst, event_sequence=seq, freeze_per_step=1, max_evaluations=b)
+            res = sim.run(strategy=Strategy.ADAPTIVE, seed=123)
+
+            assert res.all_feasible, f"Infeasible route under budget {b}"
+            for step_idx, step in enumerate(res.steps):
+                # Verify budget enforcement
+                assert step.metrics.computational_effort <= b, f"Effort {step.metrics.computational_effort} exceeded budget {b}"
+                # Verify prefix invariance
+                prev_route = step.previous_route.vertices
+                cur_route = step.updated_route.vertices
+                prefix_len = min(step_idx + 1, len(prev_route))
+                assert cur_route[:prefix_len] == prev_route[:prefix_len], "Frozen prefix violated"
+
+            if b == 0:
+                assert res.total_computational_effort == 0
+                assert res.total_candidate_evaluations == 0
+                assert res.total_overhead_evaluations == 0

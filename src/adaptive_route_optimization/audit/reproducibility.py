@@ -14,6 +14,7 @@ import os
 from typing import Any
 import numpy as np
 import pandas as pd
+from adaptive_route_optimization.paths import resolve_repo_path
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,7 @@ class ReproducibilityAuditor:
     @staticmethod
     def audit_manifest(manifest_path: str, expected_runs: int) -> ReproducibilityCheckResult:
         """Verify manifest completeness, commit hash, and run counts."""
+        manifest_path = resolve_repo_path(manifest_path)
         if not os.path.exists(manifest_path):
             return ReproducibilityCheckResult(
                 check_name=f"Manifest Check ({os.path.basename(os.path.dirname(manifest_path))})",
@@ -72,6 +74,8 @@ class ReproducibilityAuditor:
         reproduced_csv: str = "results/pilot_matrix/reproduction_run/runs.csv",
     ) -> ReproducibilityCheckResult:
         """Verify exact byte-for-byte / numerical reproducibility of Phase 6 reproduction run."""
+        original_csv = resolve_repo_path(original_csv)
+        reproduced_csv = resolve_repo_path(reproduced_csv)
         if not os.path.exists(original_csv) or not os.path.exists(reproduced_csv):
             return ReproducibilityCheckResult(
                 check_name="Pilot Reproduction Agreement",
@@ -116,6 +120,7 @@ class ReproducibilityAuditor:
     @staticmethod
     def audit_figures_traceability(figures_dir: str = "results/figures") -> ReproducibilityCheckResult:
         """Verify that all 12 publication figures exist and are non-empty images."""
+        figures_dir = resolve_repo_path(figures_dir)
         expected_figs = [
             "fig1_dynamicity_vs_cost.png",
             "fig2_dynamicity_vs_response_time.png",
@@ -156,6 +161,7 @@ class ReproducibilityAuditor:
     @staticmethod
     def audit_tables_traceability(tables_dir: str = "results/tables") -> ReproducibilityCheckResult:
         """Verify that all Phase 7 and Phase 8 summary tables exist and have valid rows."""
+        tables_dir = resolve_repo_path(tables_dir)
         expected_tables = [
             "summary_by_condition.csv",
             "paired_strategy_comparison.csv",

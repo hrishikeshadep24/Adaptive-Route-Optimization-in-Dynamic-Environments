@@ -1,0 +1,344 @@
+{
+  "experiment_name": "stage4_full_campaign",
+  "git_commit_hash": "83bb1919b3e63db884165e105972a41a86342063",
+  "git_is_clean": false,
+  "start_time": "2026-10-24T12:32:11.199955",
+  "end_time": "2026-10-24T12:32:50.745906",
+  "environment": {
+    "python_version": "3.13.2",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "numpy_version": "2.5.4",
+    "pandas_version": "3.0.6",
+    "matplotlib_version": "3.11.2"
+  },
+  "total_conditions": 14,
+  "total_seeds": 5,
+  "total_planned_runs": 280,
+  "completed_runs": 280,
+  "failed_runs": 0,
+  "output_files": {
+    "runs_csv": "results/stage4_full_matrix\\runs.csv",
+    "runs_json": "results/stage4_full_matrix\\runs.json",
+    "steps_csv": "results/stage4_full_matrix\\steps.csv",
+    "manifest_json": "results/stage4_full_matrix\\manifest.json",
+    "summary_csv": "results/stage4_full_matrix\\summary.csv",
+    "paired_csv": "results/stage4_full_matrix\\paired_comparisons.csv"
+  },
+  "metadata": {
+    "description": "Full experimental campaign matrix evaluating Strategy A, B, C, and Adaptive across synthetic (uniform, clustered, mixed) and TSPLIB benchmark instances with strict budget controls and matched scenario parity",
+    "failures": [],
+    "conditions": [
+      {
+        "condition_id": "syn_uniform_n50_d0.2_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.2,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per dynamic update step"
+        },
+        "distribution_params": {},
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_uniform_n50_d0.4_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per dynamic update step"
+        },
+        "distribution_params": {},
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_uniform_n50_d0.6_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.6,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per dynamic update step"
+        },
+        "distribution_params": {},
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_uniform_n50_d0.4_b50",
+        "total_vertices": 50,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 50,
+          "rationale": "Tight budget: 50 candidate evaluations per step"
+        },
+        "distribution_params": {},
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_uniform_n50_d0.4_unbounded",
+        "total_vertices": 50,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded local optimum search baseline"
+        },
+        "distribution_params": {},
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_clustered_n50_d0.2_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.2,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "clustered",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per step"
+        },
+        "distribution_params": {
+          "num_clusters": 3,
+          "cluster_spread": 4.0
+        },
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_clustered_n50_d0.4_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "clustered",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per step"
+        },
+        "distribution_params": {
+          "num_clusters": 3,
+          "cluster_spread": 4.0
+        },
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_clustered_n50_d0.6_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.6,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "clustered",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per step"
+        },
+        "distribution_params": {
+          "num_clusters": 3,
+          "cluster_spread": 4.0
+        },
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_clustered_n50_d0.4_b50",
+        "total_vertices": 50,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "clustered",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 50,
+          "rationale": "Tight budget: 50 candidate evaluations per step"
+        },
+        "distribution_params": {
+          "num_clusters": 3,
+          "cluster_spread": 4.0
+        },
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_mixed_n50_d0.4_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "mixed",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per step"
+        },
+        "distribution_params": {
+          "num_clusters": 2,
+          "cluster_spread": 5.0,
+          "uniform_fraction": 0.3
+        },
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "tsplib_berlin52_d0.2_b100",
+        "total_vertices": 51,
+        "dynamicity": 0.2,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per step on berlin52"
+        },
+        "distribution_params": {},
+        "instance_source": "tsplib",
+        "benchmark_name": "berlin52",
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "tsplib_berlin52_d0.4_b100",
+        "total_vertices": 51,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per step on berlin52"
+        },
+        "distribution_params": {},
+        "instance_source": "tsplib",
+        "benchmark_name": "berlin52",
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "tsplib_eil51_d0.2_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.2,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per step on eil51"
+        },
+        "distribution_params": {},
+        "instance_source": "tsplib",
+        "benchmark_name": "eil51",
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "tsplib_eil51_d0.4_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per step on eil51"
+        },
+        "distribution_params": {},
+        "instance_source": "tsplib",
+        "benchmark_name": "eil51",
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      }
+    ]
+  }
+}

@@ -1,11 +1,14 @@
 """Data Loader and Schema Validator for Research Dashboard.
 
 Loads and caches saved experiment results, manifests, and audit reports:
+- stage4_full_matrix/ (Stage 4 Full Matrix Benchmark Campaign: 280 runs)
+- stage5_adaptive_validation/ (Stage 5B Targeted Adaptive Validation: 48 runs)
+- stage5_analysis/ (Stage 5 Analysis Tables and Figures)
 - pilot_matrix/ (Phase 6 & 7)
 - budgeted_pilot/ (Phase 6 & 7)
 - held_out_matrix/ (Phase 8)
 - tables/ (Phase 7 & 8)
-- audit/ (Pre-Phase 9 Audit)
+- audit/ (Research Audit)
 """
 
 from __future__ import annotations
@@ -13,19 +16,21 @@ import json
 import os
 from typing import Any, Optional
 import pandas as pd
+from adaptive_route_optimization.paths import resolve_repo_path
 
 
 class UIDataLoader:
     """Robust data loader for dashboard UI."""
 
     def __init__(self, base_results_dir: str = "results") -> None:
-        self.base_dir = base_results_dir
+        self.base_dir = resolve_repo_path(base_results_dir)
 
     def load_dataset_runs(self, dataset_name: str) -> pd.DataFrame:
         """Load runs.csv for a specific experiment dataset.
 
         Args:
-            dataset_name: 'pilot_matrix', 'budgeted_pilot', or 'held_out_matrix'.
+            dataset_name: 'stage4_full_matrix', 'stage5_adaptive_validation',
+                          'pilot_matrix', 'budgeted_pilot', or 'held_out_matrix'.
 
         Returns:
             DataFrame containing run records.
@@ -67,6 +72,17 @@ class UIDataLoader:
             raise FileNotFoundError(f"Table file not found: {path}")
         return pd.read_csv(path)
 
+    def load_stage5_table(self, table_filename: str) -> pd.DataFrame:
+        """Load precomputed analysis table from results/stage5_analysis/."""
+        path = os.path.join(self.base_dir, "stage5_analysis", table_filename)
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Stage 5 table file not found: {path}")
+        return pd.read_csv(path)
+
+    def get_stage5_figures_path(self) -> str:
+        """Return path to Stage 5 figures directory."""
+        return os.path.join(self.base_dir, "stage5_analysis", "figures")
+
     def load_audit_reconciliation(self) -> pd.DataFrame:
         """Load metric reconciliation table from results/audit/."""
         path = os.path.join(self.base_dir, "audit", "metric_reconciliation.csv")
@@ -106,6 +122,9 @@ class UIDataLoader:
         dynamicities: Optional[list[float]] = None,
         strategies: Optional[list[str]] = None,
         seeds: Optional[list[int]] = None,
+        distributions: Optional[list[str]] = None,
+        budget_types: Optional[list[str]] = None,
+        budget_limits: Optional[list[Any]] = None,
     ) -> pd.DataFrame:
         """Filter runs DataFrame by experimental parameters."""
         filtered = df.copy()
@@ -122,5 +141,14 @@ class UIDataLoader:
 
         if seeds and "seed" in filtered.columns:
             filtered = filtered[filtered["seed"].isin(seeds)]
+
+        if distributions and "distribution" in filtered.columns:
+            filtered = filtered[filtered["distribution"].isin(distributions)]
+
+        if budget_types and "budget_type" in filtered.columns:
+            filtered = filtered[filtered["budget_type"].isin(budget_types)]
+
+        if budget_limits and "budget_limit" in filtered.columns:
+            filtered = filtered[filtered["budget_limit"].isin(budget_limits)]
 
         return filtered

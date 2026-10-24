@@ -1,7 +1,11 @@
 """UI and Visual Demonstrator Package for Adaptive Route Optimization."""
 
 from adaptive_route_optimization.ui.data_loader import UIDataLoader
-from adaptive_route_optimization.ui.visualizer import render_route_step_diagram
+from adaptive_route_optimization.ui.visualizer import (
+    render_route_step_diagram,
+    render_before_after_comparison,
+    render_strategy_comparison,
+)
 from adaptive_route_optimization.ui.demonstrator import InteractiveDemonstrator, DemonstrationStepRecord
 from adaptive_route_optimization.ui.plots import (
     plot_cost_by_dynamicity,
@@ -14,6 +18,8 @@ from adaptive_route_optimization.ui.plots import (
 __all__ = [
     "UIDataLoader",
     "render_route_step_diagram",
+    "render_before_after_comparison",
+    "render_strategy_comparison",
     "InteractiveDemonstrator",
     "DemonstrationStepRecord",
     "plot_cost_by_dynamicity",

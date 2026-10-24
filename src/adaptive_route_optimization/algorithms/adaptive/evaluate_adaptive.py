@@ -11,6 +11,7 @@ import os
 from typing import Any, Optional
 import numpy as np
 import pandas as pd
+from adaptive_route_optimization.paths import resolve_repo_path
 
 # Headless matplotlib
 import matplotlib
@@ -38,6 +39,9 @@ def evaluate_held_out_results(
     if not os.path.exists(held_out_runs_path):
         raise FileNotFoundError(f"Held-out runs file not found: {held_out_runs_path}")
 
+    held_out_runs_path = resolve_repo_path(held_out_runs_path)
+    tables_dir = resolve_repo_path(tables_dir)
+    figures_dir = resolve_repo_path(figures_dir)
     runs_df = pd.read_csv(held_out_runs_path)
     os.makedirs(tables_dir, exist_ok=True)
     os.makedirs(figures_dir, exist_ok=True)

@@ -1,0 +1,125 @@
+{
+  "experiment_name": "stage5_adaptive_validation",
+  "git_commit_hash": "83bb1919b3e63db884165e105972a41a86342063",
+  "git_is_clean": false,
+  "start_time": "2026-10-24T12:49:09.017299",
+  "end_time": "2026-10-24T12:49:20.691863",
+  "environment": {
+    "python_version": "3.13.2",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "numpy_version": "2.5.4",
+    "pandas_version": "3.0.6",
+    "matplotlib_version": "3.11.2"
+  },
+  "total_conditions": 4,
+  "total_seeds": 3,
+  "total_planned_runs": 48,
+  "completed_runs": 48,
+  "failed_runs": 0,
+  "output_files": {
+    "runs_csv": "results/stage5_adaptive_validation\\runs.csv",
+    "runs_json": "results/stage5_adaptive_validation\\runs.json",
+    "steps_csv": "results/stage5_adaptive_validation\\steps.csv",
+    "manifest_json": "results/stage5_adaptive_validation\\manifest.json",
+    "summary_csv": "results/stage5_adaptive_validation\\summary.csv",
+    "paired_csv": "results/stage5_adaptive_validation\\paired_comparisons.csv"
+  },
+  "metadata": {
+    "description": "Targeted validation of corrected budget-aware Adaptive selector (Rule v2) against Strategy A, B, and C across uniform, clustered, mixed, and unbounded conditions",
+    "failures": [],
+    "conditions": [
+      {
+        "condition_id": "syn_uniform_n50_d0.2_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.2,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per dynamic update step"
+        },
+        "distribution_params": {},
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_clustered_n50_d0.6_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.6,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "clustered",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per dynamic update step"
+        },
+        "distribution_params": {
+          "num_clusters": 3,
+          "cluster_spread": 4.0
+        },
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_mixed_n50_d0.4_b100",
+        "total_vertices": 50,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "mixed",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 100,
+          "rationale": "Cap at 100 candidate evaluations per dynamic update step"
+        },
+        "distribution_params": {
+          "num_clusters": 2,
+          "cluster_spread": 5.0,
+          "uniform_fraction": 0.3
+        },
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "syn_uniform_n50_d0.4_unbounded",
+        "total_vertices": 50,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded reference baseline"
+        },
+        "distribution_params": {},
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      }
+    ]
+  }
+}

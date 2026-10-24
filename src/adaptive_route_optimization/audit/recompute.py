@@ -13,6 +13,8 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+from adaptive_route_optimization.paths import resolve_repo_path
+
 
 class RawDataRecomputer:
     """Calculates all audited metrics directly from raw CSV/JSON files."""
@@ -27,13 +29,13 @@ class RawDataRecomputer:
         held_out_steps_path: str = "results/held_out_matrix/steps.csv",
         held_out_manifest_path: str = "results/held_out_matrix/manifest.json",
     ) -> None:
-        self.pilot_runs_path = pilot_runs_path
-        self.pilot_steps_path = pilot_steps_path
-        self.pilot_manifest_path = pilot_manifest_path
-        self.budgeted_runs_path = budgeted_runs_path
-        self.held_out_runs_path = held_out_runs_path
-        self.held_out_steps_path = held_out_steps_path
-        self.held_out_manifest_path = held_out_manifest_path
+        self.pilot_runs_path = resolve_repo_path(pilot_runs_path)
+        self.pilot_steps_path = resolve_repo_path(pilot_steps_path)
+        self.pilot_manifest_path = resolve_repo_path(pilot_manifest_path)
+        self.budgeted_runs_path = resolve_repo_path(budgeted_runs_path)
+        self.held_out_runs_path = resolve_repo_path(held_out_runs_path)
+        self.held_out_steps_path = resolve_repo_path(held_out_steps_path)
+        self.held_out_manifest_path = resolve_repo_path(held_out_manifest_path)
 
         # Lazy loaded DataFrames
         self._df_pilot_runs: pd.DataFrame | None = None
