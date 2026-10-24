@@ -106,6 +106,23 @@ class TestUIDataLoader:
         assert not df_perf.empty
         assert not df_paired.empty
 
+    def test_load_stage7_runs(self):
+        loader = UIDataLoader()
+        df = loader.load_dataset_runs("stage7_adaptive_c")
+        assert len(df) == 450
+        assert set(df["strategy"].unique()) == {"A", "B", "C", "ADAPTIVE_V2", "ADAPTIVE_V3"}
+        manifest = loader.load_dataset_manifest("stage7_adaptive_c")
+        assert manifest["completed_runs"] == 450
+        assert manifest["failed_runs"] == 0
+
+    def test_load_stage7_tables(self):
+        loader = UIDataLoader()
+        df_agg = loader.load_stage7_table("overall_strategy_aggregates.csv")
+        df_tests = loader.load_stage7_table("paired_hypothesis_tests.csv")
+        assert not df_agg.empty
+        assert not df_tests.empty
+        assert len(df_agg) == 5
+
 
 # ---------------------------------------------------------------------------
 # 2. Route Visualizer Tests
@@ -395,6 +412,30 @@ class TestInteractiveDemonstrator:
         step = demo_budget.get_step(1)
         assert step.prefix_preserved is True
         assert step.evaluations_used <= 150
+
+    def test_demonstrator_adaptive_v2(self):
+        demo_v2 = InteractiveDemonstrator(
+            n_vertices=15,
+            dynamicity=0.4,
+            seed=42,
+            strategy="ADAPTIVE_V2",
+        )
+        assert demo_v2.total_steps > 0
+        step = demo_v2.get_step(1)
+        assert step.prefix_preserved is True
+        assert "ADAPTIVE v2" in step.strategy_used
+
+    def test_demonstrator_adaptive_v3(self):
+        demo_v3 = InteractiveDemonstrator(
+            n_vertices=15,
+            dynamicity=0.4,
+            seed=42,
+            strategy="ADAPTIVE_V3",
+        )
+        assert demo_v3.total_steps > 0
+        step = demo_v3.get_step(1)
+        assert step.prefix_preserved is True
+        assert "ADAPTIVE v3" in step.strategy_used
 
 
 # ---------------------------------------------------------------------------

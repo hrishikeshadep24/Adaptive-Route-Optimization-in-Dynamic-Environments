@@ -176,9 +176,38 @@ def main() -> None:
                 | **Strategy A (Greedy)** | Cheapest Insertion of newly revealed vertices into uncommitted suffix. | $O(m)$ candidate checks per vertex |
                 | **Strategy B (2-opt)** | Cheapest Insertion followed by First-Improvement 2-opt on uncommitted suffix. | $O(m^2)$ evaluations per pass |
                 | **Strategy C (Destroy-Repair)** | Suffix Ruin-and-Recreate: remove subset of customers and reinsert greedily. | $O(k \\cdot m)$ evaluations per step |
-                | **ADAPTIVE (Rule v2)** | Interpretable budget-aware meta-selector choosing A or B dynamically. | $O(1)$ decision overhead (+1 evaluation) |
+                | **ADAPTIVE v2 (A/B)** | Interpretable budget-aware meta-selector choosing A or B dynamically. | $O(1)$ decision overhead (+1 evaluation) |
+                | **ADAPTIVE v3 (A/B/C)** | Budget-aware three-strategy selector with ruin-and-recreate and fallback cascade. | $O(1)$ decision overhead (+1 evaluation) |
 
                 *Application Neutrality*: Delivery and courier scenarios are intuitive interpretations. The underlying computational model is an abstract dynamic graph routing problem on Euclidean metric space without GPS, road network, or map API dependencies.
+                """
+            )
+
+        with st.expander("🚀 Adaptive v3 Three-Strategy Selection Logic & Fallback Cascade"):
+            st.markdown(
+                """
+                #### Three-Strategy Selection Architecture (Stage 7)
+                Adaptive v3 extends the deterministic rule-based selector to choose dynamically among:
+                - **Strategy A**: Greedy Insertion
+                - **Strategy B**: Cheapest Insertion + 2-opt
+                - **Strategy C**: Suffix Destroy-and-Repair (Large Neighborhood Search)
+
+                #### Core Decision Rules & Selection Triggers:
+                1. **Degeneracy & Structural Guard**:
+                   - Suffix must have $m_{\\text{edges}} \\ge 4$ for Strategy B, and $m_{\\text{cust}} \\ge 6$ for Strategy C.
+                2. **Restructuring Need Evaluation (Strategy C Preference)**:
+                   - **Arrival Shock / Burst**: $|\\Delta_t| \\ge 2$ newly arrived customers at a single time step.
+                   - **Mid-Stage High Dynamism Diversification**: $\\alpha \\ge 0.40$ and revealed customer ratio $\\in [0.35, 0.85]$.
+                   - **Route Deterioration Shock**: Immediate route cost increase $\\ge +5\\%$.
+                3. **Local Search Evaluation (Strategy B Preference)**:
+                   - **Low Dynamism**: $\\alpha \\le 0.20$ (local search has 100% win rate).
+                   - **Late Stage**: Revealed ratio $\\ge 0.75$ (commitment trap eliminated).
+                4. **Budget-Aware Fallback Cascade**:
+                   - If C is desired: Checks whether remaining budget covers 1 destroy-repair pass:
+                     $$\\text{Req}_C = E_{\\text{ins}} + E_{\\text{repair}} \\le B_{\\text{rem}}$$
+                     If yes, selects **C**. If unaffordable, degrades to **B** (if $B_{\\text{rem}} \\ge E_{\\text{ins}} + 10$). If neither fits, safe fallback to **A**.
+                   - If B is desired: Checks $B_{\\text{rem}} \\ge E_{\\text{ins}} + 10$. If unaffordable, safe fallback to **A**.
+                   - Otherwise: Selects **A** (to conserve computational budget and avoid early myopic entrapment).
                 """
             )
 
@@ -336,7 +365,8 @@ def main() -> None:
             strat_label = st.selectbox(
                 "Primary Repair Policy:",
                 [
-                    "ADAPTIVE (Rule v2 Selector)",
+                    "ADAPTIVE v3 (Three-Strategy: A, B, C)",
+                    "ADAPTIVE v2 (Two-Strategy: A, B)",
                     "Strategy A (Greedy Insertion)",
                     "Strategy B (Cheapest Insertion + 2-opt)",
                     "Strategy C (Destroy & Repair)",
@@ -345,7 +375,8 @@ def main() -> None:
                 help="Algorithmic strategy applied upon dynamic customer arrivals.",
             )
             strat_map = {
-                "ADAPTIVE (Rule v2 Selector)": "ADAPTIVE",
+                "ADAPTIVE v3 (Three-Strategy: A, B, C)": "ADAPTIVE_V3",
+                "ADAPTIVE v2 (Two-Strategy: A, B)": "ADAPTIVE_V2",
                 "Strategy A (Greedy Insertion)": "A",
                 "Strategy B (Cheapest Insertion + 2-opt)": "B",
                 "Strategy C (Destroy & Repair)": "C",
@@ -541,24 +572,33 @@ def main() -> None:
 
         elif view_mode == "Strategy Head-to-Head Comparison":
             cmp_col1, cmp_col2 = st.columns(2)
+            head_to_head_options = [
+                "ADAPTIVE v3 (A/B/C)",
+                "ADAPTIVE v2 (A/B)",
+                "Strategy A (Greedy)",
+                "Strategy B (2-opt)",
+                "Strategy C (Destroy-Repair)",
+            ]
             with cmp_col1:
                 strat_left = st.selectbox(
                     "Left Panel Strategy:",
-                    ["Strategy A (Greedy)", "Strategy B (2-opt)", "Strategy C (Destroy-Repair)", "ADAPTIVE"],
+                    head_to_head_options,
                     index=0,
                 )
             with cmp_col2:
                 strat_right = st.selectbox(
                     "Right Panel Strategy:",
-                    ["Strategy B (2-opt)", "Strategy A (Greedy)", "Strategy C (Destroy-Repair)", "ADAPTIVE"],
-                    index=0,
+                    head_to_head_options,
+                    index=1,
                 )
 
             s_code_map = {
                 "Strategy A (Greedy)": "A",
                 "Strategy B (2-opt)": "B",
                 "Strategy C (Destroy-Repair)": "C",
-                "ADAPTIVE": "ADAPTIVE",
+                "ADAPTIVE v3 (A/B/C)": "ADAPTIVE_V3",
+                "ADAPTIVE v2 (A/B)": "ADAPTIVE_V2",
+                "ADAPTIVE": "ADAPTIVE_V3",
             }
             demo_left = get_demonstrator(
                 n=demo_n,
@@ -662,55 +702,98 @@ def main() -> None:
             "All visualizations and tables read directly from immutable saved outputs."
         )
 
-        # Stage 5 Analysis Figures Section
-        st.subheader("Stage 5 Benchmark Matrix Empirical Analysis (14 Conditions, 280 Runs)")
-        st.warning(
-            "⚠️ **Statistical Qualification Notice**: Stage 4 benchmark results are based on $N=5$ seeds per condition, "
-            "and Stage 5B validation on $N=4$ seeds. While paired differences show clear directional patterns and confidence intervals are computed, "
-            "these sample sizes are exploratory/pilot in scale. Claims of statistical significance must be treated as indicative rather than confirmatory "
-            "until larger sample replications (e.g., the proposed 840-run robustness matrix) are conducted."
+        # Stage 7 Three-Strategy Campaign Figures Section
+        st.subheader("🚀 Stage 7 Three-Strategy Adaptive Campaign (18 Conditions, 450 Runs)")
+        st.markdown(
+            "Empirical evaluation comparing **Fixed A (Greedy)**, **Fixed B (2-opt)**, "
+            "**Fixed C (Destroy-Repair)**, **ADAPTIVE v2 (A/B)**, and **ADAPTIVE v3 (A/B/C)** across 18 conditions and 5 random seeds (450 total runs)."
         )
 
-        fig_dir = loader.get_stage5_figures_path()
-        if os.path.exists(fig_dir):
-            fig_col1, fig_col2 = st.columns(2)
-            with fig_col1:
-                cost_fig_path = os.path.join(fig_dir, "cost_by_condition_and_strategy.png")
-                if os.path.exists(cost_fig_path):
-                    st.image(cost_fig_path, caption="Figure 1: Mean Final Route Cost by Experimental Condition and Strategy (Lower is Better)")
+        s7_fig_dir = loader.get_stage7_figures_path()
+        if os.path.exists(s7_fig_dir):
+            s7_col1, s7_col2 = st.columns(2)
+            with s7_col1:
+                s7_cost_path = os.path.join(s7_fig_dir, "cost_comparison_by_condition.png")
+                if os.path.exists(s7_cost_path):
+                    st.image(s7_cost_path, caption="Stage 7 Figure 1: Mean Final Route Cost by Condition across 5 Strategies (Lower is Better)")
                     st.caption(
-                        "**Key Finding**: Strategy B achieves lowest cost at low dynamicity (α=0.2). "
-                        "Strategy C is highly competitive across clustered topologies. "
-                        "Strategy A avoids the high-dynamicity entrapment trap."
+                        "**Key Finding**: Strategy C excels on clustered and uniform topologies under generous budgets. "
+                        "Adaptive v3 matches or improves over Adaptive v2 on clustered instances while protecting against budget starvation."
+                    )
+            with s7_col2:
+                s7_pareto_path = os.path.join(s7_fig_dir, "cost_vs_effort_pareto.png")
+                if os.path.exists(s7_pareto_path):
+                    st.image(s7_pareto_path, caption="Stage 7 Figure 2: Quality vs. Computational Effort Pareto Frontier (Log Scale)")
+                    st.caption(
+                        "**Key Finding**: Adaptive v2 offers the highest efficiency per evaluation. "
+                        "Strategy C and Adaptive v3 explore broader neighborhoods, unlocking lower tour costs on clustered networks."
                     )
 
-            with fig_col2:
-                pareto_fig_path = os.path.join(fig_dir, "cost_vs_computational_effort_pareto.png")
-                if os.path.exists(pareto_fig_path):
-                    st.image(pareto_fig_path, caption="Figure 2: Quality vs. Computational Effort Pareto Frontier (Log Scale)")
+            s7_col3, s7_col4 = st.columns(2)
+            with s7_col3:
+                s7_paired_path = os.path.join(s7_fig_dir, "paired_cost_differences.png")
+                if os.path.exists(s7_paired_path):
+                    st.image(s7_paired_path, caption="Stage 7 Figure 3: Paired Cost Differences vs. Baseline Strategy A (Negative = Better)")
                     st.caption(
-                        "**Key Finding**: Strategy A uses minimal effort (~50-200 evals). "
-                        "Strategy B uses 10x-50x more evaluations. Strategy C provides an effective intermediate trade-off."
+                        "**Key Finding**: Adaptive v2, Adaptive v3, and Strategy B all achieve statistically significant improvements over Strategy A ($p < 0.001$). "
+                        "Adaptive v3 is statistically indistinguishable from Adaptive v2 across the overall matrix ($p = 0.148$)."
+                    )
+            with s7_col4:
+                s7_budget_path = os.path.join(s7_fig_dir, "strategy_c_budget_contrast.png")
+                if os.path.exists(s7_budget_path):
+                    st.image(s7_budget_path, caption="Stage 7 Figure 4: Strategy C Behavior Under Tight Budget (B=100) vs. Unbounded Budget (B=∞)")
+                    st.caption(
+                        "**Key Finding**: Under $B=100$, Strategy C suffers budget truncation. "
+                        "Adaptive v3 intelligently detects this budget limit and cascades down to Strategy B or A, preventing budget exhaustion."
                     )
 
-            fig_col3, fig_col4 = st.columns(2)
-            with fig_col3:
-                budget_fig_path = os.path.join(fig_dir, "budget_sensitivity_comparison.png")
-                if os.path.exists(budget_fig_path):
-                    st.image(budget_fig_path, caption="Figure 3: Budget Sensitivity Comparison across B ∈ {50, 100, 500, ∞}")
-                    st.caption(
-                        "**Key Finding**: Bounding 2-opt to B=100 or B=500 captures the majority of tour improvements "
-                        "while eliminating extreme runtime tails."
-                    )
+        with st.expander("📊 View Historical Stage 5 Benchmark Matrix Empirical Analysis (14 Conditions, 280 Runs)"):
+            st.warning(
+                "⚠️ **Statistical Qualification Notice**: Stage 4 benchmark results are based on $N=5$ seeds per condition, "
+                "and Stage 5B validation on $N=4$ seeds. While paired differences show clear directional patterns and confidence intervals are computed, "
+                "these sample sizes are exploratory/pilot in scale."
+            )
 
-            with fig_col4:
-                ci_fig_path = os.path.join(fig_dir, "paired_cost_diff_with_ci.png")
-                if os.path.exists(ci_fig_path):
-                    st.image(ci_fig_path, caption="Figure 4: Paired Cost Differences with 95% Confidence Intervals")
-                    st.caption(
-                        "**Key Finding**: Paired comparisons under identical scenario fingerprints confirm directional benefits "
-                        "while illustrating uncertainty from N=5 seed sample sizes."
-                    )
+            fig_dir = loader.get_stage5_figures_path()
+            if os.path.exists(fig_dir):
+                fig_col1, fig_col2 = st.columns(2)
+                with fig_col1:
+                    cost_fig_path = os.path.join(fig_dir, "cost_by_condition_and_strategy.png")
+                    if os.path.exists(cost_fig_path):
+                        st.image(cost_fig_path, caption="Figure 1: Mean Final Route Cost by Experimental Condition and Strategy (Lower is Better)")
+                        st.caption(
+                            "**Key Finding**: Strategy B achieves lowest cost at low dynamicity (α=0.2). "
+                            "Strategy C is highly competitive across clustered topologies. "
+                            "Strategy A avoids the high-dynamicity entrapment trap."
+                        )
+
+                with fig_col2:
+                    pareto_fig_path = os.path.join(fig_dir, "cost_vs_computational_effort_pareto.png")
+                    if os.path.exists(pareto_fig_path):
+                        st.image(pareto_fig_path, caption="Figure 2: Quality vs. Computational Effort Pareto Frontier (Log Scale)")
+                        st.caption(
+                            "**Key Finding**: Strategy A uses minimal effort (~50-200 evals). "
+                            "Strategy B uses 10x-50x more evaluations. Strategy C provides an effective intermediate trade-off."
+                        )
+
+                fig_col3, fig_col4 = st.columns(2)
+                with fig_col3:
+                    budget_fig_path = os.path.join(fig_dir, "budget_sensitivity_comparison.png")
+                    if os.path.exists(budget_fig_path):
+                        st.image(budget_fig_path, caption="Figure 3: Budget Sensitivity Comparison across B ∈ {50, 100, 500, ∞}")
+                        st.caption(
+                            "**Key Finding**: Bounding 2-opt to B=100 or B=500 captures the majority of tour improvements "
+                            "while eliminating extreme runtime tails."
+                        )
+
+                with fig_col4:
+                    ci_fig_path = os.path.join(fig_dir, "paired_cost_diff_with_ci.png")
+                    if os.path.exists(ci_fig_path):
+                        st.image(ci_fig_path, caption="Figure 4: Paired Cost Differences with 95% Confidence Intervals")
+                        st.caption(
+                            "**Key Finding**: Paired comparisons under identical scenario fingerprints confirm directional benefits "
+                            "while illustrating uncertainty from N=5 seed sample sizes."
+                        )
 
         # Results Explorer
         st.markdown("---")
@@ -718,6 +801,7 @@ def main() -> None:
         st.markdown("Inspect audited run records directly from raw data with zero hardcoded values.")
 
         dataset_options = [
+            "Stage 7 Three-Strategy Campaign (450 runs: A, B, C, Adaptive v2, Adaptive v3)",
             "Stage 4 Full Matrix (280 runs across 14 conditions, 5 seeds, Strategies A, B, C, Adaptive)",
             "Stage 5B Adaptive Validation (48 runs across 2 conditions, 4 seeds, A, B, C, Adaptive v1 & v2)",
             "Held-Out Matrix (Phase 8, Unseen Seeds [1234, 5678, 9999])",
@@ -728,6 +812,7 @@ def main() -> None:
         dataset_choice = st.selectbox("Select Experiment Batch:", dataset_options, index=0)
 
         dataset_dir_map = {
+            "Stage 7 Three-Strategy Campaign (450 runs: A, B, C, Adaptive v2, Adaptive v3)": "stage7_adaptive_c",
             "Stage 4 Full Matrix (280 runs across 14 conditions, 5 seeds, Strategies A, B, C, Adaptive)": "stage4_full_matrix",
             "Stage 5B Adaptive Validation (48 runs across 2 conditions, 4 seeds, A, B, C, Adaptive v1 & v2)": "stage5_adaptive_validation",
             "Held-Out Matrix (Phase 8, Unseen Seeds [1234, 5678, 9999])": "held_out_matrix",
@@ -814,6 +899,27 @@ def main() -> None:
                 file_name=f"{dataset_key}_filtered.csv",
                 mime="text/csv",
             )
+
+            if dataset_key == "stage7_adaptive_c":
+                try:
+                    df_s7_agg = loader.load_stage7_table("overall_strategy_aggregates.csv")
+                    with st.expander("📊 Stage 7 Overall Strategy Aggregates & Ranking (All 90 Paired Instances)"):
+                        st.markdown(
+                            "Mean, standard deviation, and median metrics across all 90 evaluation instances (450 total runs) comparing all five strategies."
+                        )
+                        st.dataframe(df_s7_agg, width="stretch", hide_index=True)
+                except Exception:
+                    pass
+
+                try:
+                    df_s7_tests = loader.load_stage7_table("paired_hypothesis_tests.csv")
+                    with st.expander("🧪 Stage 7 Paired Hypothesis Testing & Statistical Significance"):
+                        st.markdown(
+                            "Paired t-tests, Wilcoxon signed-rank tests, Cohen's $d$ effect sizes, and Holm-Bonferroni $p$-value adjustments across matching seeds and conditions."
+                        )
+                        st.dataframe(df_s7_tests, width="stretch", hide_index=True)
+                except Exception:
+                    pass
         else:
             st.warning("No records match the current filter selection.")
 
@@ -823,7 +929,7 @@ def main() -> None:
     elif nav_selection == "4. Research Evidence":
         st.header("4. Research Evidence, Limitations & Audit Verification")
         st.markdown(
-            "Complete empirical summary and independent audit verification across Stages 1 through 6. "
+            "Complete empirical summary and independent audit verification across Stages 1 through 7. "
             "All findings link directly to audited data files, git commit manifests, and reproducibility reports."
         )
 
@@ -852,6 +958,13 @@ def main() -> None:
                - Stage 5B implemented and verified **Rule v2** (budget-aware partial 2-opt authorization).
                - On $B=100$, Rule v2 matched Strategy B on uniform instances (saving 3.62% cost) and outperformed Strategy B by **56.58 cost units** on clustered instances by avoiding the entrapment trap.
                - *Citations*: `results/stage5_adaptive_validation/final_audit.md`.
+
+            5. **Stage 7 Findings: Three-Strategy Selection & Suffix Destroy-and-Repair**:
+               - **Selective Superiority of Strategy C**: Strategy C achieves lower cost than Strategy B when budgets are unconstrained on clustered topologies (e.g. 306.11 vs 317.52 on clustered $n=50, \\alpha=0.4$) and uniform topologies (682.38 vs 713.70 on uniform $n=50, \\alpha=0.4$), because ruin-and-recreate untangles inter-cluster connections that 2-opt cannot cross.
+               - **Adaptive v3 Decision Behavior**: Adaptive v3 selects C during arrival bursts ($|\\Delta_t| \\ge 2$), sudden route cost degradation jumps ($\\ge +5\\%$), and mid-stage high dynamism ($\\alpha \\ge 0.40$), provided the uncommitted suffix is $\\ge 6$ and remaining budget covers insertion plus repair.
+               - **Budget-Aware Fallback Cascade**: Under tight budgets ($B=100$), Strategy C's required evaluations exceed $B_{\\text{rem}}$. Adaptive v3 safely cascades down to Strategy B or Strategy A, ensuring **100% budget compliance (0 violations across 7,250 dynamic steps)**.
+               - **Statistical Parity between Adaptive v2 and v3**: Overall across all 90 paired instances (450 runs), Adaptive v2 achieves mean cost 1457.69 (3,040 evals) vs Adaptive v3 mean cost 1464.99 (11,669 evals). The difference (+7.30 cost units) is statistically insignificant ($p = 0.148$, Holm-Bonferroni adjusted), demonstrating that Adaptive v3 maintains strong solution quality while selectively employing higher-effort restructuring where beneficial.
+               - *Citations*: `results/stage7_adaptive_c/summary.csv`, `results/stage7_adaptive_c/paired_hypothesis_tests.csv`.
             """
         )
 
@@ -892,7 +1005,7 @@ def main() -> None:
             passed_claims = (df_recon["status"] == "PASS").sum()
             st.metric("Passed Claims", f"{passed_claims} / {len(df_recon)}")
         with ac4:
-            st.metric("Automated Tests", "329+ Passed", delta="0 Regressions")
+            st.metric("Automated Tests", "350+ Passed", delta="0 Regressions")
 
         with st.expander("📋 Claim Reconciliation Table (All Audited Claims)"):
             st.dataframe(

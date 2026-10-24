@@ -83,6 +83,17 @@ class UIDataLoader:
         """Return path to Stage 5 figures directory."""
         return os.path.join(self.base_dir, "stage5_analysis", "figures")
 
+    def load_stage7_table(self, table_filename: str) -> pd.DataFrame:
+        """Load precomputed analysis table from results/stage7_adaptive_c/."""
+        path = os.path.join(self.base_dir, "stage7_adaptive_c", table_filename)
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Stage 7 table file not found: {path}")
+        return pd.read_csv(path)
+
+    def get_stage7_figures_path(self) -> str:
+        """Return path to Stage 7 figures directory."""
+        return os.path.join(self.base_dir, "stage7_adaptive_c", "figures")
+
     def load_audit_reconciliation(self) -> pd.DataFrame:
         """Load metric reconciliation table from results/audit/."""
         path = os.path.join(self.base_dir, "audit", "metric_reconciliation.csv")

@@ -113,6 +113,10 @@ class InteractiveDemonstrator:
             self.strategy_enum = Strategy.B
         elif upper_strat == "C":
             self.strategy_enum = Strategy.C
+        elif upper_strat in ("ADAPTIVE_V2", "V2"):
+            self.strategy_enum = Strategy.ADAPTIVE_V2
+        elif upper_strat in ("ADAPTIVE_V3", "V3"):
+            self.strategy_enum = Strategy.ADAPTIVE_V3
         else:
             self.strategy_enum = Strategy.ADAPTIVE
 
@@ -123,7 +127,12 @@ class InteractiveDemonstrator:
     def _simulate_all_steps(self) -> None:
         """Run step-by-step recording complete visual state at each dynamic event."""
         current_state = self.initial_state
-        selector = AdaptiveSelector()
+        if self.strategy_enum == Strategy.ADAPTIVE_V2:
+            from adaptive_route_optimization.algorithms.adaptive.selector import SelectorConfig
+            selector = AdaptiveSelector(SelectorConfig(name="rule_v2_budget_aware", version="v2"))
+        else:
+            from adaptive_route_optimization.algorithms.adaptive.selector import SelectorConfig
+            selector = AdaptiveSelector(SelectorConfig(name="rule_v3_three_strategy", version="v3"))
 
         for t in range(self.event_sequence.num_event_steps):
             event_verts = self.event_sequence.get_event_at_step(t)
@@ -139,7 +148,7 @@ class InteractiveDemonstrator:
             effective_strategy = self.strategy_enum
             overhead_evals = 0
 
-            if self.strategy_enum == Strategy.ADAPTIVE:
+            if self.strategy_enum in (Strategy.ADAPTIVE, Strategy.ADAPTIVE_V2, Strategy.ADAPTIVE_V3):
                 feat = extract_features(
                     state=current_state,
                     new_vertices=event_verts,
@@ -151,7 +160,14 @@ class InteractiveDemonstrator:
                 dec = selector.select(feat)
                 decision_rationale = dec.rationale
                 overhead_evals = dec.overhead_evaluations
-                effective_strategy = Strategy.A if dec.chosen_strategy == StrategyChoice.A else Strategy.B
+                if dec.chosen_strategy == StrategyChoice.A:
+                    effective_strategy = Strategy.A
+                elif dec.chosen_strategy == StrategyChoice.B:
+                    effective_strategy = Strategy.B
+                elif dec.chosen_strategy == StrategyChoice.C:
+                    effective_strategy = Strategy.C
+                else:
+                    effective_strategy = Strategy.A
 
             # Advance state with new vertices
             state_with_new = current_state.with_new_vertices(event_verts)
@@ -177,9 +193,17 @@ class InteractiveDemonstrator:
             prefix_preserved = (prefix_before == prefix_after)
 
             # Descriptive strategy label
-            if self.strategy_enum == Strategy.ADAPTIVE:
-                sub_strat = "Greedy" if effective_strategy == Strategy.A else "2-opt"
-                strat_label = f"ADAPTIVE ({sub_strat})"
+            if self.strategy_enum in (Strategy.ADAPTIVE, Strategy.ADAPTIVE_V2, Strategy.ADAPTIVE_V3):
+                if effective_strategy == Strategy.A:
+                    sub_strat = "Greedy"
+                elif effective_strategy == Strategy.B:
+                    sub_strat = "2-opt"
+                elif effective_strategy == Strategy.C:
+                    sub_strat = "Destroy-Repair"
+                else:
+                    sub_strat = str(effective_strategy.value)
+                v_tag = "v2" if self.strategy_enum == Strategy.ADAPTIVE_V2 else "v3"
+                strat_label = f"ADAPTIVE {v_tag} ({sub_strat})"
             elif effective_strategy == Strategy.A:
                 strat_label = "Strategy A (Greedy)"
             elif effective_strategy == Strategy.B:

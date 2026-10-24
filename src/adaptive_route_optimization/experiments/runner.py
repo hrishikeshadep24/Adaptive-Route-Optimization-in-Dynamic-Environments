@@ -394,7 +394,7 @@ def generate_paired_comparisons(run_records: Sequence[RunRecord]) -> pd.DataFram
 
 
         # Record per-strategy metrics
-        for s_key in ["A", "B", "C", "ADAPTIVE"]:
+        for s_key in ["A", "B", "C", "ADAPTIVE", "ADAPTIVE_V2", "ADAPTIVE_V3"]:
             rec = strat_rows.get(s_key)
             if rec is not None and rec.get("status") == "SUCCESS":
                 base_info[f"cost_{s_key}"] = rec.get("final_cost")
@@ -421,6 +421,10 @@ def generate_paired_comparisons(run_records: Sequence[RunRecord]) -> pd.DataFram
             ("ADAPTIVE", "A", "diff_cost_Adaptive_vs_A", "diff_effort_Adaptive_vs_A"),
             ("C", "B", "diff_cost_C_vs_B", "diff_effort_C_vs_B"),
             ("ADAPTIVE", "B", "diff_cost_Adaptive_vs_B", "diff_effort_Adaptive_vs_B"),
+            ("ADAPTIVE_V3", "A", "diff_cost_AdaptiveV3_vs_A", "diff_effort_AdaptiveV3_vs_A"),
+            ("ADAPTIVE_V3", "B", "diff_cost_AdaptiveV3_vs_B", "diff_effort_AdaptiveV3_vs_B"),
+            ("ADAPTIVE_V3", "C", "diff_cost_AdaptiveV3_vs_C", "diff_effort_AdaptiveV3_vs_C"),
+            ("ADAPTIVE_V3", "ADAPTIVE_V2", "diff_cost_AdaptiveV3_vs_V2", "diff_effort_AdaptiveV3_vs_V2"),
         ]
 
         for s1, s2, cost_diff_name, effort_diff_name in pairs_to_diff:
@@ -535,7 +539,7 @@ class ExperimentRunner:
 
         # Validate strategy configuration early
 
-        valid_strategies = {"A", "B", "C", "ADAPTIVE", "ADAPT"}
+        valid_strategies = {"A", "B", "C", "ADAPTIVE", "ADAPT", "ADAPTIVE_V2", "ADAPTIVE_V3"}
 
         for s in self.config.strategies:
 
@@ -757,9 +761,13 @@ class ExperimentRunner:
 
                         strat_enum = Strategy.C
 
-                    elif upper_name in ("ADAPTIVE", "ADAPT"):
+                    elif upper_name in ("ADAPTIVE", "ADAPT", "ADAPTIVE_V3"):
 
-                        strat_enum = Strategy.ADAPTIVE
+                        strat_enum = Strategy.ADAPTIVE_V3
+
+                    elif upper_name in ("ADAPTIVE_V2", "ADAPT_V2"):
+
+                        strat_enum = Strategy.ADAPTIVE_V2
 
                     else:
 

@@ -90,7 +90,11 @@ class Strategy(Enum):
 
     C = "destroy_repair"        # Strategy C: Suffix Destroy-and-Repair (Phase 4 / Stage 2)
 
-    ADAPTIVE = "adaptive"       # Strategy Adaptive: Interpretable Adaptive Strategy Selector (Phase 8)
+    ADAPTIVE = "adaptive"       # Strategy Adaptive: Interpretable Adaptive Strategy Selector (Phase 8 / Stage 7)
+
+    ADAPTIVE_V2 = "adaptive_v2" # Strategy Adaptive v2: Legacy A/B rule selector (Stage 5B)
+
+    ADAPTIVE_V3 = "adaptive_v3" # Strategy Adaptive v3: Three-strategy A/B/C selector (Stage 7)
 
 
 
@@ -738,13 +742,22 @@ class Simulator:
 
         effective_strategy = strategy
 
-        if strategy == Strategy.ADAPTIVE:
+        if strategy in (Strategy.ADAPTIVE, Strategy.ADAPTIVE_V2, Strategy.ADAPTIVE_V3):
 
             from adaptive_route_optimization.algorithms.adaptive.features import extract_features
 
-            from adaptive_route_optimization.algorithms.adaptive.selector import AdaptiveSelector, StrategyChoice
+            from adaptive_route_optimization.algorithms.adaptive.selector import (
+                AdaptiveSelector,
+                SelectorConfig,
+                StrategyChoice,
+            )
 
-            sel = self.selector or AdaptiveSelector()
+            if self.selector is not None:
+                sel = self.selector
+            elif strategy == Strategy.ADAPTIVE_V2:
+                sel = AdaptiveSelector(SelectorConfig(name="rule_v2_budget_aware", version="v2"))
+            else:
+                sel = AdaptiveSelector(SelectorConfig(name="rule_v3_three_strategy", version="v3"))
 
             features = extract_features(
 
@@ -762,7 +775,14 @@ class Simulator:
 
             decision = sel.select(features)
 
-            effective_strategy = Strategy.A if decision.chosen_strategy == StrategyChoice.A else Strategy.B
+            if decision.chosen_strategy == StrategyChoice.A:
+                effective_strategy = Strategy.A
+            elif decision.chosen_strategy == StrategyChoice.B:
+                effective_strategy = Strategy.B
+            elif decision.chosen_strategy == StrategyChoice.C:
+                effective_strategy = Strategy.C
+            else:
+                raise ValueError(f"Unknown chosen strategy: {decision.chosen_strategy}")
 
             overhead_evals = decision.overhead_evaluations
 

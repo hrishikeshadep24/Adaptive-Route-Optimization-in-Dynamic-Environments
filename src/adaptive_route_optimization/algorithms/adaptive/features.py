@@ -46,6 +46,11 @@ class StateFeatures:
     current_cost: float
     estimated_2opt_evals: int
     remaining_eval_budget: Optional[int] = None
+    estimated_insertion_evals: int = 0
+    estimated_destroy_repair_evals: int = 0
+    recent_cost_change: float = 0.0
+    relative_cost_change: float = 0.0
+    burst_arrival_ratio: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -57,6 +62,7 @@ def extract_features(
     total_vertices: int,
     initial_known_count: int,
     remaining_eval_budget: Optional[int] = None,
+    previous_cost: Optional[float] = None,
 ) -> StateFeatures:
     r"""Extract observable state features at decision time t.
 
@@ -68,6 +74,7 @@ def extract_features(
         total_vertices: Problem instance total customers n.
         initial_known_count: |V_0 \ {0}|, customers known at t=0.
         remaining_eval_budget: Optional remaining candidate evaluation budget.
+        previous_cost: Optional route cost from step t-1 to compute cost change.
 
     Returns:
         StateFeatures dataclass populated with decision-time features.
@@ -100,6 +107,33 @@ def extract_features(
     m = uncommitted_cust + event_sz + 1
     estimated_2opt_evals = max(0, (m * (m - 3)) // 2) if m >= 4 else 0
 
+    # Insertion candidate evaluations estimation
+    k = max(0, event_sz)
+    est_ins = k * uncommitted_cust + (k * (k + 1)) // 2 if k > 0 else 0
+
+    # Destroy-and-Repair candidate evaluations estimation (1 pass cheapest repair)
+    m_new = uncommitted_cust + k
+    if m_new >= 2:
+        q = max(1, int(m_new * 0.25))
+        q = min(q, m_new)
+        m_part = max(1, m_new - q)
+        # Edges in partial suffix = m_part + 1
+        e_repair = q * (m_part + 1) + (q * (q - 1)) // 2
+        estimated_destroy_repair_evals = est_ins + e_repair
+    else:
+        estimated_destroy_repair_evals = est_ins
+
+    # Dynamic burst arrival ratio
+    burst_arrival_ratio = float(k / max(1, m_new))
+
+    # Cost changes
+    recent_cost_change = 0.0
+    relative_cost_change = 0.0
+    if previous_cost is not None:
+        recent_cost_change = float(current_cost - previous_cost)
+        if previous_cost > 1e-6:
+            relative_cost_change = float(recent_cost_change / previous_cost)
+
     return StateFeatures(
         total_vertices=total_vertices,
         known_vertices_count=updated_known_cust,
@@ -112,4 +146,9 @@ def extract_features(
         current_cost=current_cost,
         estimated_2opt_evals=estimated_2opt_evals,
         remaining_eval_budget=remaining_eval_budget,
+        estimated_insertion_evals=est_ins,
+        estimated_destroy_repair_evals=estimated_destroy_repair_evals,
+        recent_cost_change=recent_cost_change,
+        relative_cost_change=relative_cost_change,
+        burst_arrival_ratio=burst_arrival_ratio,
     )
