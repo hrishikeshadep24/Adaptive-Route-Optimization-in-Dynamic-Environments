@@ -27,6 +27,8 @@ from adaptive_route_optimization.ui.plots import (
     plot_pareto_frontier,
     plot_disruption_comparison,
     plot_budget_ablation_chart,
+    plot_strategy_cost_bars,
+    plot_strategy_effort_bars,
 )
 
 
@@ -515,3 +517,23 @@ class TestResearchPlots:
         fig = plot_cost_by_dynamicity(empty_df)
         assert isinstance(fig, plt.Figure)
         plt.close(fig)
+
+        fig_cost = plot_strategy_cost_bars(empty_df)
+        assert isinstance(fig_cost, plt.Figure)
+        plt.close(fig_cost)
+
+        fig_effort = plot_strategy_effort_bars(empty_df)
+        assert isinstance(fig_effort, plt.Figure)
+        plt.close(fig_effort)
+
+    def test_plot_strategy_cost_and_effort_bars(self):
+        loader = UIDataLoader()
+        df_agg = loader.load_stage7_table("overall_strategy_aggregates.csv")
+
+        fig_cost = plot_strategy_cost_bars(df_agg)
+        assert isinstance(fig_cost, plt.Figure)
+        plt.close(fig_cost)
+
+        fig_effort = plot_strategy_effort_bars(df_agg)
+        assert isinstance(fig_effort, plt.Figure)
+        plt.close(fig_effort)
