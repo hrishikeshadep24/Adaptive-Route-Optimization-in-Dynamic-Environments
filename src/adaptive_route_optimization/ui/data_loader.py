@@ -79,9 +79,21 @@ class UIDataLoader:
             raise FileNotFoundError(f"Stage 5 table file not found: {path}")
         return pd.read_csv(path)
 
+    def get_figures_path(self, dataset_name: str = "stage7_adaptive_c") -> str:
+        """Return path to figures directory for a given dataset or analysis stage.
+
+        Args:
+            dataset_name: Name of the results subdirectory (e.g. 'stage7_adaptive_c'
+                          or 'stage5_analysis').
+
+        Returns:
+            Resolved filesystem path to the figures directory.
+        """
+        return os.path.join(self.base_dir, dataset_name, "figures")
+
     def get_stage5_figures_path(self) -> str:
         """Return path to Stage 5 figures directory."""
-        return os.path.join(self.base_dir, "stage5_analysis", "figures")
+        return self.get_figures_path("stage5_analysis")
 
     def load_stage7_table(self, table_filename: str) -> pd.DataFrame:
         """Load precomputed analysis table from results/stage7_adaptive_c/."""
@@ -92,7 +104,7 @@ class UIDataLoader:
 
     def get_stage7_figures_path(self) -> str:
         """Return path to Stage 7 figures directory."""
-        return os.path.join(self.base_dir, "stage7_adaptive_c", "figures")
+        return self.get_figures_path("stage7_adaptive_c")
 
     def load_audit_reconciliation(self) -> pd.DataFrame:
         """Load metric reconciliation table from results/audit/."""

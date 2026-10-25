@@ -123,6 +123,46 @@ class TestUIDataLoader:
         assert not df_tests.empty
         assert len(df_agg) == 5
 
+    def test_get_stage7_figures_path(self):
+        loader = UIDataLoader()
+        s7_path = loader.get_stage7_figures_path()
+        assert isinstance(s7_path, str)
+        assert s7_path.endswith(os.path.join("stage7_adaptive_c", "figures"))
+        # Verify get_figures_path general method parity
+        assert s7_path == loader.get_figures_path("stage7_adaptive_c")
+        assert loader.get_stage5_figures_path() == loader.get_figures_path("stage5_analysis")
+
+    def test_figures_path_custom_and_missing_directory(self, tmp_path):
+        # Path resolution works consistently for arbitrary base results dirs
+        custom_loader = UIDataLoader(base_results_dir=str(tmp_path))
+        custom_s7_path = custom_loader.get_stage7_figures_path()
+        assert custom_s7_path == os.path.join(str(tmp_path), "stage7_adaptive_c", "figures")
+        # Genuinely missing directory returns False without crashing
+        assert not os.path.exists(custom_s7_path)
+
+        # Non-existent table raises FileNotFoundError
+        with pytest.raises(FileNotFoundError):
+            custom_loader.load_stage7_table("non_existent_table.csv")
+
+    def test_ui_stage7_figures_backward_compatible_fallback(self):
+        """Verify fallback resolution when loader lacks get_stage7_figures_path."""
+        class LegacyLoader:
+            base_dir = "results"
+
+        legacy_loader = LegacyLoader()
+        assert not hasattr(legacy_loader, "get_stage7_figures_path")
+
+        # Emulate app.py resolution logic
+        if hasattr(legacy_loader, "get_stage7_figures_path"):
+            resolved = legacy_loader.get_stage7_figures_path()
+        elif hasattr(legacy_loader, "get_figures_path"):
+            resolved = legacy_loader.get_figures_path("stage7_adaptive_c")
+        else:
+            base_dir = getattr(legacy_loader, "base_dir", "results")
+            resolved = os.path.join(base_dir, "stage7_adaptive_c", "figures")
+
+        assert resolved.endswith(os.path.join("stage7_adaptive_c", "figures"))
+
 
 # ---------------------------------------------------------------------------
 # 2. Route Visualizer Tests

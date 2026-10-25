@@ -709,12 +709,21 @@ def main() -> None:
             "**Fixed C (Destroy-Repair)**, **ADAPTIVE v2 (A/B)**, and **ADAPTIVE v3 (A/B/C)** across 18 conditions and 5 random seeds (450 total runs)."
         )
 
-        s7_fig_dir = loader.get_stage7_figures_path()
+        if hasattr(loader, "get_stage7_figures_path"):
+            s7_fig_dir = loader.get_stage7_figures_path()
+        elif hasattr(loader, "get_figures_path"):
+            s7_fig_dir = loader.get_figures_path("stage7_adaptive_c")
+        else:
+            base_dir = getattr(loader, "base_dir", "results")
+            s7_fig_dir = os.path.join(base_dir, "stage7_adaptive_c", "figures")
+
         if os.path.exists(s7_fig_dir):
+            rendered_any = False
             s7_col1, s7_col2 = st.columns(2)
             with s7_col1:
                 s7_cost_path = os.path.join(s7_fig_dir, "cost_comparison_by_condition.png")
                 if os.path.exists(s7_cost_path):
+                    rendered_any = True
                     st.image(s7_cost_path, caption="Stage 7 Figure 1: Mean Final Route Cost by Condition across 5 Strategies (Lower is Better)")
                     st.caption(
                         "**Key Finding**: Strategy C excels on clustered and uniform topologies under generous budgets. "
@@ -723,6 +732,7 @@ def main() -> None:
             with s7_col2:
                 s7_pareto_path = os.path.join(s7_fig_dir, "cost_vs_effort_pareto.png")
                 if os.path.exists(s7_pareto_path):
+                    rendered_any = True
                     st.image(s7_pareto_path, caption="Stage 7 Figure 2: Quality vs. Computational Effort Pareto Frontier (Log Scale)")
                     st.caption(
                         "**Key Finding**: Adaptive v2 offers the highest efficiency per evaluation. "
@@ -733,6 +743,7 @@ def main() -> None:
             with s7_col3:
                 s7_paired_path = os.path.join(s7_fig_dir, "paired_cost_differences.png")
                 if os.path.exists(s7_paired_path):
+                    rendered_any = True
                     st.image(s7_paired_path, caption="Stage 7 Figure 3: Paired Cost Differences vs. Baseline Strategy A (Negative = Better)")
                     st.caption(
                         "**Key Finding**: Adaptive v2, Adaptive v3, and Strategy B all achieve statistically significant improvements over Strategy A ($p < 0.001$). "
@@ -741,11 +752,23 @@ def main() -> None:
             with s7_col4:
                 s7_budget_path = os.path.join(s7_fig_dir, "strategy_c_budget_contrast.png")
                 if os.path.exists(s7_budget_path):
+                    rendered_any = True
                     st.image(s7_budget_path, caption="Stage 7 Figure 4: Strategy C Behavior Under Tight Budget (B=100) vs. Unbounded Budget (B=∞)")
                     st.caption(
                         "**Key Finding**: Under $B=100$, Strategy C suffers budget truncation. "
                         "Adaptive v3 intelligently detects this budget limit and cascades down to Strategy B or A, preventing budget exhaustion."
                     )
+
+            if not rendered_any:
+                st.info(
+                    f"ℹ️ **No Stage 7 Figures Found**: The directory `{s7_fig_dir}` exists, but no figure PNG files were found. "
+                    "Run `python scripts/generate_stage7_figures.py` to generate the Stage 7 comparison figures."
+                )
+        else:
+            st.warning(
+                f"⚠️ **Stage 7 Figures Directory Not Found**: `{s7_fig_dir}` does not exist. "
+                "Run `python scripts/generate_stage7_figures.py` to generate the Stage 7 comparison figures."
+            )
 
         with st.expander("📊 View Historical Stage 5 Benchmark Matrix Empirical Analysis (14 Conditions, 280 Runs)"):
             st.warning(
