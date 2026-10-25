@@ -1,0 +1,172 @@
+{
+  "experiment_name": "held_out_matrix",
+  "git_commit_hash": "1a991a1b87a07b0c5061e17cd77b38c071c7e888",
+  "git_is_clean": false,
+  "start_time": "2026-10-21T17:13:30.555478",
+  "end_time": "2026-10-21T17:17:16.988437",
+  "environment": {
+    "python_version": "3.13.2",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "numpy_version": "2.4.0",
+    "pandas_version": "2.3.3",
+    "matplotlib_version": "3.10.8"
+  },
+  "total_conditions": 10,
+  "total_seeds": 3,
+  "total_planned_runs": 90,
+  "completed_runs": 90,
+  "failed_runs": 0,
+  "output_files": {
+    "runs_csv": "results/held_out_matrix\\runs.csv",
+    "runs_json": "results/held_out_matrix\\runs.json",
+    "steps_csv": "results/held_out_matrix\\steps.csv",
+    "manifest_json": "results/held_out_matrix\\manifest.json"
+  },
+  "metadata": {
+    "description": "Phase 8 final evaluation on strictly held-out seeds [1234, 5678, 9999] comparing Always A, Always B, and Adaptive Selector",
+    "failures": [],
+    "conditions": [
+      {
+        "condition_id": "n50_d0.1",
+        "total_vertices": 50,
+        "dynamicity": 0.1,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+        }
+      },
+      {
+        "condition_id": "n50_d0.2",
+        "total_vertices": 50,
+        "dynamicity": 0.2,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+        }
+      },
+      {
+        "condition_id": "n50_d0.4",
+        "total_vertices": 50,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+        }
+      },
+      {
+        "condition_id": "n50_d0.6",
+        "total_vertices": 50,
+        "dynamicity": 0.6,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+        }
+      },
+      {
+        "condition_id": "n50_d0.8",
+        "total_vertices": 50,
+        "dynamicity": 0.8,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+        }
+      },
+      {
+        "condition_id": "n100_d0.2",
+        "total_vertices": 100,
+        "dynamicity": 0.2,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+        }
+      },
+      {
+        "condition_id": "n100_d0.4",
+        "total_vertices": 100,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+        }
+      },
+      {
+        "condition_id": "n100_d0.6",
+        "total_vertices": 100,
+        "dynamicity": 0.6,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+        }
+      },
+      {
+        "condition_id": "n200_d0.2",
+        "total_vertices": 200,
+        "dynamicity": 0.2,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+        }
+      },
+      {
+        "condition_id": "n200_d0.4",
+        "total_vertices": 200,
+        "dynamicity": 0.4,
+        "events_per_step": 1,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Controlled comparison matching Phase 6 pilot matrix"
+        }
+      }
+    ]
+  }
+}

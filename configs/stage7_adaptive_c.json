@@ -1,0 +1,316 @@
+{
+  "name": "stage7_adaptive_c",
+  "description": "Stage 7 Benchmark Campaign: Evaluating Fixed Strategy A, B, C, Adaptive v2 (A/B), and Adaptive v3 (A/B/C) across uniform, clustered, mixed, and TSPLIB instances under bounded and unbounded budgets",
+  "seeds": [42, 101, 202, 303, 505],
+  "strategies": ["A", "B", "C", "ADAPTIVE_V2", "ADAPTIVE_V3"],
+  "output_dir": "results/stage7_adaptive_c",
+  "conditions": [
+    {
+      "condition_id": "syn_uniform_n50_d0.2_b100",
+      "total_vertices": 50,
+      "dynamicity": 0.2,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 100,
+        "rationale": "Cap at 100 candidate evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_uniform_n50_d0.4_b100",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 100,
+        "rationale": "Cap at 100 candidate evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_uniform_n50_d0.6_b100",
+      "total_vertices": 50,
+      "dynamicity": 0.6,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 100,
+        "rationale": "Cap at 100 candidate evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_uniform_n50_d0.4_b50",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 50,
+        "rationale": "Tight budget: 50 evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_uniform_n50_d0.4_b500",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 500,
+        "rationale": "Generous budget: 500 evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_uniform_n50_d0.4_unbounded",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Unbounded reference search",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_clustered_n50_d0.2_b100",
+      "total_vertices": 50,
+      "dynamicity": 0.2,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "clustered",
+      "distribution_params": {
+        "num_clusters": 3,
+        "cluster_spread": 4.0
+      },
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 100,
+        "rationale": "Cap at 100 candidate evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_clustered_n50_d0.4_b100",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "clustered",
+      "distribution_params": {
+        "num_clusters": 3,
+        "cluster_spread": 4.0
+      },
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 100,
+        "rationale": "Cap at 100 candidate evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_clustered_n50_d0.6_b100",
+      "total_vertices": 50,
+      "dynamicity": 0.6,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "clustered",
+      "distribution_params": {
+        "num_clusters": 3,
+        "cluster_spread": 4.0
+      },
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 100,
+        "rationale": "Cap at 100 candidate evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_clustered_n50_d0.4_b50",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "clustered",
+      "distribution_params": {
+        "num_clusters": 3,
+        "cluster_spread": 4.0
+      },
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 50,
+        "rationale": "Tight budget: 50 evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_clustered_n50_d0.4_b500",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "clustered",
+      "distribution_params": {
+        "num_clusters": 3,
+        "cluster_spread": 4.0
+      },
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 500,
+        "rationale": "Generous budget: 500 evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_clustered_n50_d0.4_unbounded",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "clustered",
+      "distribution_params": {
+        "num_clusters": 3,
+        "cluster_spread": 4.0
+      },
+      "budget": {
+        "budget_type": "unbounded",
+        "limit": null,
+        "rationale": "Unbounded reference search on clustered distribution",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_mixed_n50_d0.4_b100",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "mixed",
+      "distribution_params": {
+        "num_clusters": 2,
+        "cluster_spread": 5.0,
+        "uniform_fraction": 0.3
+      },
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 100,
+        "rationale": "Cap at 100 candidate evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "syn_uniform_n50_d0.4_burst_b500",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 2,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "uniform",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 500,
+        "rationale": "Burst arrivals of 2 vertices per step with 500 evaluation budget",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "tsplib_berlin52_d0.2_b100",
+      "total_vertices": 51,
+      "dynamicity": 0.2,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "tsplib",
+      "instance_source": "tsplib",
+      "benchmark_name": "berlin52",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 100,
+        "rationale": "Cap at 100 candidate evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "tsplib_berlin52_d0.4_b100",
+      "total_vertices": 51,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "tsplib",
+      "instance_source": "tsplib",
+      "benchmark_name": "berlin52",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 100,
+        "rationale": "Cap at 100 candidate evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "tsplib_eil51_d0.2_b100",
+      "total_vertices": 50,
+      "dynamicity": 0.2,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "tsplib",
+      "instance_source": "tsplib",
+      "benchmark_name": "eil51",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 100,
+        "rationale": "Cap at 100 candidate evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    },
+    {
+      "condition_id": "tsplib_eil51_d0.4_b100",
+      "total_vertices": 50,
+      "dynamicity": 0.4,
+      "events_per_step": 1,
+      "freeze_per_step": 1,
+      "vertex_order": "random",
+      "distribution": "tsplib",
+      "instance_source": "tsplib",
+      "benchmark_name": "eil51",
+      "budget": {
+        "budget_type": "max_evaluations",
+        "limit": 100,
+        "rationale": "Cap at 100 candidate evaluations per dynamic update step",
+        "budget_scope": "per_step"
+      }
+    }
+  ]
+}

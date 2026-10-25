@@ -1,0 +1,30 @@
+{
+  "all_passed": true,
+  "checks": [
+    {
+      "check_name": "Rule 10 Parity (Pilot Matrix)",
+      "passed": true,
+      "details": "All 30 matched conditions have identical initial states and events."
+    },
+    {
+      "check_name": "Rule 10 Parity (Held-Out Matrix)",
+      "passed": true,
+      "details": "All 30 matched conditions have identical initial states and events."
+    },
+    {
+      "check_name": "Seed Partition Disjointness",
+      "passed": true,
+      "details": "Partitions strictly disjoint. Dev=[42, 101], Val=[777], Held-Out=[1234, 5678, 9999]."
+    },
+    {
+      "check_name": "Feature Non-Leakage",
+      "passed": true,
+      "details": "StateFeatures only accesses currently observable state at step t with zero future access."
+    },
+    {
+      "check_name": "Selection Overhead Accounting",
+      "passed": true,
+      "details": "Selection overhead (+1 candidate evaluation) and step repair efforts are strictly non-negative and recorded."
+    }
+  ]
+}

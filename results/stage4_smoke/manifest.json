@@ -1,0 +1,100 @@
+{
+  "experiment_name": "stage4_smoke_campaign",
+  "git_commit_hash": "83bb1919b3e63db884165e105972a41a86342063",
+  "git_is_clean": false,
+  "start_time": "2026-10-24T12:17:19.673644",
+  "end_time": "2026-10-24T12:17:20.188388",
+  "environment": {
+    "python_version": "3.13.2",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "numpy_version": "2.5.4",
+    "pandas_version": "3.0.6",
+    "matplotlib_version": "3.11.2"
+  },
+  "total_conditions": 3,
+  "total_seeds": 2,
+  "total_planned_runs": 24,
+  "completed_runs": 24,
+  "failed_runs": 0,
+  "output_files": {
+    "runs_csv": "results/stage4_smoke\\runs.csv",
+    "runs_json": "results/stage4_smoke\\runs.json",
+    "steps_csv": "results/stage4_smoke\\steps.csv",
+    "manifest_json": "results/stage4_smoke\\manifest.json",
+    "summary_csv": "results/stage4_smoke\\summary.csv",
+    "paired_csv": "results/stage4_smoke\\paired_comparisons.csv"
+  },
+  "metadata": {
+    "description": "Stage 4 verification smoke test matrix across synthetic and benchmark instances with hard budget control",
+    "failures": [],
+    "conditions": [
+      {
+        "condition_id": "smoke_uniform_unbounded",
+        "total_vertices": 12,
+        "dynamicity": 0.33,
+        "events_per_step": 2,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "unbounded",
+          "limit": null,
+          "rationale": "Unbounded baseline execution"
+        },
+        "distribution_params": {},
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "smoke_clustered_budget40",
+        "total_vertices": 12,
+        "dynamicity": 0.33,
+        "events_per_step": 2,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "clustered",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 40,
+          "rationale": "Unbounded baseline execution"
+        },
+        "distribution_params": {
+          "num_clusters": 2,
+          "cluster_spread": 4.0
+        },
+        "instance_source": "synthetic",
+        "benchmark_name": null,
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      },
+      {
+        "condition_id": "smoke_tsplib_berlin52_budget50",
+        "total_vertices": 51,
+        "dynamicity": 0.1,
+        "events_per_step": 2,
+        "freeze_per_step": 1,
+        "vertex_order": "random",
+        "distribution": "uniform",
+        "budget": {
+          "budget_type": "max_evaluations",
+          "limit": 50,
+          "rationale": "Unbounded baseline execution"
+        },
+        "distribution_params": {},
+        "instance_source": "tsplib",
+        "benchmark_name": "berlin52",
+        "batch_schedule": null,
+        "replicate": 0,
+        "distance_metric": "continuous_euclidean",
+        "budget_scope": "per_step"
+      }
+    ]
+  }
+}
