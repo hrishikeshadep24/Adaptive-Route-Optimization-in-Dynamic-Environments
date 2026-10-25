@@ -537,3 +537,15 @@ class TestResearchPlots:
         fig_effort = plot_strategy_effort_bars(df_agg)
         assert isinstance(fig_effort, plt.Figure)
         plt.close(fig_effort)
+
+    def test_ui_package_exports_and_reimport(self):
+        """Verify exports from adaptive_route_optimization.ui and plots module."""
+        import adaptive_route_optimization.ui as ui
+        assert hasattr(ui, "plot_strategy_cost_bars")
+        assert hasattr(ui, "plot_strategy_effort_bars")
+        assert hasattr(ui, "POLICY_COLORS")
+        assert hasattr(ui, "POLICY_LABELS")
+
+        import adaptive_route_optimization.ui.plots as plots
+        assert hasattr(plots, "plot_strategy_cost_bars")
+        assert hasattr(plots, "plot_strategy_effort_bars")

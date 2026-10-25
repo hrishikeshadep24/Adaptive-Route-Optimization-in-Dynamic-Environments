@@ -28,17 +28,80 @@ from adaptive_route_optimization.ui.visualizer import (
     render_strategy_comparison,
 )
 from adaptive_route_optimization.ui.demonstrator import InteractiveDemonstrator
-from adaptive_route_optimization.ui.plots import (
-    POLICY_COLORS,
-    POLICY_LABELS,
-    plot_cost_by_dynamicity,
-    plot_effort_by_dynamicity,
-    plot_pareto_frontier,
-    plot_disruption_comparison,
-    plot_budget_ablation_chart,
-    plot_strategy_cost_bars,
-    plot_strategy_effort_bars,
-)
+try:
+    from adaptive_route_optimization.ui.plots import (
+        POLICY_COLORS,
+        POLICY_LABELS,
+        plot_cost_by_dynamicity,
+        plot_effort_by_dynamicity,
+        plot_pareto_frontier,
+        plot_disruption_comparison,
+        plot_budget_ablation_chart,
+        plot_strategy_cost_bars,
+        plot_strategy_effort_bars,
+    )
+except ImportError:
+    # If Streamlit or Python cached an older in-memory version of plots without reloading:
+    import importlib
+    import sys
+    if "adaptive_route_optimization.ui.plots" in sys.modules:
+        importlib.reload(sys.modules["adaptive_route_optimization.ui.plots"])
+    try:
+        from adaptive_route_optimization.ui.plots import (
+            POLICY_COLORS,
+            POLICY_LABELS,
+            plot_cost_by_dynamicity,
+            plot_effort_by_dynamicity,
+            plot_pareto_frontier,
+            plot_disruption_comparison,
+            plot_budget_ablation_chart,
+            plot_strategy_cost_bars,
+            plot_strategy_effort_bars,
+        )
+    except ImportError:
+        from adaptive_route_optimization.ui.plots import (
+            POLICY_COLORS,
+            POLICY_LABELS,
+            plot_cost_by_dynamicity,
+            plot_effort_by_dynamicity,
+            plot_pareto_frontier,
+            plot_disruption_comparison,
+            plot_budget_ablation_chart,
+        )
+        def plot_strategy_cost_bars(df_agg, title="Mean Final Route Cost by Policy (Lower is Better)", figsize=(6.8, 3.8)):
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(figsize=figsize, dpi=120)
+            if df_agg.empty or "strategy" not in df_agg.columns or "mean_cost" not in df_agg.columns:
+                ax.text(0.5, 0.5, "Required columns missing", ha="center", va="center")
+                return fig
+            order = ["A", "B", "C", "ADAPTIVE_V2", "ADAPTIVE_V3"]
+            present = [s for s in order if s in df_agg["strategy"].values] or df_agg["strategy"].tolist()
+            df_plot = df_agg.set_index("strategy").reindex(present).reset_index()
+            x = range(len(df_plot))
+            ax.bar(x, df_plot["mean_cost"], color=[POLICY_COLORS.get(s, "#333333") for s in df_plot["strategy"]], width=0.52)
+            ax.set_xticks(x)
+            ax.set_xticklabels(df_plot["strategy"])
+            ax.set_title(title)
+            plt.tight_layout()
+            return fig
+
+        def plot_strategy_effort_bars(df_agg, title="Mean Computational Effort by Policy (Evaluations, Log Scale)", figsize=(6.8, 3.8)):
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(figsize=figsize, dpi=120)
+            if df_agg.empty or "strategy" not in df_agg.columns or "mean_effort" not in df_agg.columns:
+                ax.text(0.5, 0.5, "Required columns missing", ha="center", va="center")
+                return fig
+            order = ["A", "B", "C", "ADAPTIVE_V2", "ADAPTIVE_V3"]
+            present = [s for s in order if s in df_agg["strategy"].values] or df_agg["strategy"].tolist()
+            df_plot = df_agg.set_index("strategy").reindex(present).reset_index()
+            x = range(len(df_plot))
+            ax.bar(x, df_plot["mean_effort"], color=[POLICY_COLORS.get(s, "#333333") for s in df_plot["strategy"]], width=0.52)
+            ax.set_yscale("log")
+            ax.set_xticks(x)
+            ax.set_xticklabels(df_plot["strategy"])
+            ax.set_title(title)
+            plt.tight_layout()
+            return fig
 
 # Page configuration
 st.set_page_config(

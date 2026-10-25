@@ -38,6 +38,18 @@ POLICY_LABELS = {
     "ORACLE": "Hindsight Oracle Benchmark",
 }
 
+__all__ = [
+    "POLICY_COLORS",
+    "POLICY_LABELS",
+    "plot_cost_by_dynamicity",
+    "plot_effort_by_dynamicity",
+    "plot_pareto_frontier",
+    "plot_disruption_comparison",
+    "plot_budget_ablation_chart",
+    "plot_strategy_cost_bars",
+    "plot_strategy_effort_bars",
+]
+
 
 def plot_cost_by_dynamicity(
     df: pd.DataFrame,
